@@ -1,1 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temple Accounts</title>
 
+<style>
+body{
+  font-family:sans-serif;
+  background:#FFF8E7;
+  margin:0;
+  font-size:16px;
+}
+
+/* HEADER */
+.hdr{
+  background:#8B1A1A;
+  color:#FFD700;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.hdr-t{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-weight:700;
+}
+
+/* LIVE BADGE */
+.live-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:700;
+  color:#00e676;
+  border:2px solid #00e676;
+  background:rgba(0,230,118,0.08);
+}
+
+.live-badge::before{
+  content:'';
+  width:8px;
+  height:8px;
+  background:#00e676;
+  border-radius:50%;
+  animation:blink 1s infinite;
+}
+
+@keyframes blink{
+  0%{opacity:1;}
+  50%{opacity:0.3;}
+  100%{opacity:1;}
+}
+
+/* INPUT */
+input,select{
+  width:90%;
+  padding:10px;
+  margin:10px;
+  font-size:16px;
+}
+
+button{
+  padding:10px;
+  margin:10px;
+  background:#8B1A1A;
+  color:#fff;
+  border:none;
+  border-radius:6px;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:8px;
+  border-bottom:1px solid #ddd;
+}
+</style>
+</head>
+
+<body>
+
+<div class="hdr">
+  <div class="hdr-t">
+    🛕 Temple Accounts
+    <span class="live-badge">Live</span>
+  </div>
+</div>
+
+<h3 style="padding-left:10px;">Add Entry</h3>
+
+<input type="text" id="name" placeholder="Name">
+
+<select id="type">
+  <option value="income">Income</option>
+  <option value="expense">Expense</option>
+</select>
+
+<select id="category">
+  <option value="Archana">Archana</option>
+  <option value="Pooja">Pooja</option>
+  <option value="Donation">Donation</option>
+  <option value="Other">Other (Type)</option>
+</select>
+
+<input type="text" id="amount" placeholder="₹0" oninput="formatAmount(this)">
+
+<button onclick="addEntry()">Add</button>
+
+<h3 style="padding-left:10px;">Transactions</h3>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Category</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody id="data"></tbody>
+</table>
+
+<script>
+let db=[];
+
+/* ₹ FORMAT */
+function formatAmount(input){
+  let raw=input.value.replace(/[^\d]/g,'');
+  if(!raw){input.value='';return;}
+  input.value='₹'+Number(raw).toLocaleString('en-IN');
+}
+
+/* OTHER CATEGORY */
+document.getElementById('category').addEventListener('change',function(){
+  if(this.value==='Other'){
+    let c=prompt("Enter category:");
+    if(c){
+      let opt=document.createElement('option');
+      opt.value=c;
+      opt.textContent=c;
+      this.appendChild(opt);
+      this.value=c;
+    }else{
+      this.value='';
+    }
+  }
+});
+
+/* ADD ENTRY */
+function addEntry(){
+  let name=document.getElementById('name').value;
+  let type=document.getElementById('type').value;
+  let cat=document.getElementById('category').value;
+  let amtRaw=document.getElementById('amount').value.replace(/[^\d]/g,'');
+  let amount=parseInt(amtRaw);
+
+  if(!name||!amount){
+    alert("Fill all");
+    return;
+  }
+
+  db.push({name,type,cat,amount});
+  render();
+}
+
+/* RENDER */
+function render(){
+  let html='';
+  db.forEach(d=>{
+    html+=`
+    <tr>
+      <td>${d.name}</td>
+      <td>${d.type}</td>
+      <td>${d.cat}</td>
+      <td>₹${d.amount.toLocaleString('en-IN')}</td>
+    </tr>`;
+  });
+  document.getElementById('data').innerHTML=html;
+}
+</script>
+
+</body>
+</html>
