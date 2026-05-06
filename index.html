@@ -956,6 +956,53 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 checkReset();
 
+
+// ── NAME SUGGESTIONS ──
+function showNameSuggestions(){
+  const inp=document.getElementById('fn');
+  const box=document.getElementById('nameSuggBox');
+  if(!inp||!box) return;
+  const q=inp.value.toLowerCase().trim();
+  const names=[...new Set([
+    ...DB.transactions.map(t=>t.name),
+    ...DB.donors.map(d=>d.name)
+  ])].filter(Boolean).sort();
+  const filtered=q ? names.filter(n=>n.toLowerCase().includes(q)) : names;
+  if(!filtered.length){box.style.display='none';return;}
+  box.innerHTML=filtered.map(n=>`
+    <div onmousedown="event.preventDefault();selectName(decodeURIComponent('${encodeURIComponent(n)}'))" 
+      style="padding:12px 14px;font-size:15px;font-weight:600;color:#111;border-bottom:1px solid #f0e8d0;cursor:pointer;background:#fff;">
+      ${n}
+    </div>`).join('');
+  box.style.display='block';
+}
+function hideNameSuggestions(){
+  const box=document.getElementById('nameSuggBox');
+  if(box) box.style.display='none';
+}
+function selectName(name){
+  const inp=document.getElementById('fn');
+  if(inp) inp.value=name;
+  hideNameSuggestions();
+  // Auto-fill from last transaction
+  const lastTx=DB.transactions.filter(t=>t.name===name).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  if(lastTx){
+    document.getElementById('ft').value=lastTx.type||'income';
+    const stdCats=['Archana','Pooja','Monthly','Donation','Festival','Salary','Maintenance','Electricity','Cleaning'];
+    if(lastTx.category){
+      if(stdCats.includes(lastTx.category)){
+        document.getElementById('fcat').value=lastTx.category;
+        document.getElementById('customCatRow').style.display='none';
+      } else {
+        document.getElementById('fcat').value='Other';
+        document.getElementById('customCatRow').style.display='block';
+        document.getElementById('fcatCustom').value=lastTx.category;
+      }
+    }
+    if(lastTx.amount) document.getElementById('fa').value=lastTx.amount;
+  }
+}
+
 // ── FIREBASE INIT ──
 function showLoading(show){
   let el=document.getElementById('loadingBar');
@@ -1028,4 +1075,3 @@ setTimeout(()=>{
 </script>
 </body>
 </html>
-
