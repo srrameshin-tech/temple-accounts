@@ -22,8 +22,7 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-  const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+  const auth = getAuth(app);
 signInAnonymously(auth).catch(e => console.log(e));
 const db = getDatabase(app);
 window.firebaseDB = db;
