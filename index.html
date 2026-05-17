@@ -1,1 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temple Accounts</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBVGVu59jDZybPFAX_pRisSrQRoXHQ0EWY",
+  authDomain: "kmbsc-chit.firebaseapp.com",
+  databaseURL: "https://kmbsc-chit-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "kmbsc-chit",
+  storageBucket: "kmbsc-chit.firebasestorage.app",
+  messagingSenderId: "511325458985",
+  appId: "1:511325458985:web:a7597bcf0f89b71405c238"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+signInAnonymously(auth).catch(e => console.log(e));
+const db = getDatabase(app);
+window.firebaseDB = db;
+window.firebaseRef = ref;
+window.firebaseSet = set;
+window.firebaseGet = get;
+window.firebaseOnValue = onValue;
+window.firebaseReady = true;
+</script>
+<style>
+:root {
+  --bg:#FFF8E7;--card:#fff;--card2:#FFF3D0;--border:#E8D5A3;
+  --red:#8B1A1A;--orange:#FF6B00;--gold:#D4A017;--green:#1B5E20;
+  --blue:#0D47A1;--text:#111;--muted:#666;--shadow:rgba(0,0,0,0.12);
+}
+.dark-mode {
+  --bg:#1a1205;--card:#2a1f0a;--card2:#3a2d10;--border:#5a4520;
+  --text:#f5e6c0;--muted:#a08050;--shadow:rgba(0,0,0,0.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans',-apple-system,sans-serif;font-weight:600;background:var(--bg);color:var(--text);min-height:100vh;transition:background 0.3s,color 0.3s;}
+/* LOGIN */
+#loginScreen{min-height:100vh;background:linear-gradient(180deg,#5a0000,#8B1A1A 55%,#cc4400);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
+.l-logo{width:110px;height:110px;object-fit:contain;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.4));}
+.l-title{font-size:22px;font-weight:700;color:#FFD700;margin-bottom:2px;}
+.l-sub{font-size:13px;color:#ffcc88;margin-bottom:14px;}
+.l-box{background:#fff;border-radius:16px;padding:18px 20px;width:100%;max-width:300px;box-shadow:0 12px 40px rgba(0,0,0,0.4);}
+.l-box h3{font-size:15px;color:#8B1A1A;margin-bottom:12px;text-align:center;}
+.lbl{font-size:13px;color:#555;font-weight:600;margin-bottom:4px;display:block;text-transform:uppercase;}
+.linp{width:100%;padding:11px 13px;border:1.5px solid #ddd;border-radius:8px;font-size:16px;margin-bottom:12px;outline:none;}
+.linp:focus{border-color:#FF6B00;}
+.lbtn{width:100%;padding:13px;background:linear-gradient(135deg,#8B1A1A,#FF6B00);color:#fff;border:none;border-radius:9px;font-size:16px;font-weight:700;cursor:pointer;}
+.lerr{color:#c00;font-size:13px;text-align:center;margin-top:7px;display:none;}
+/* APP */
+#app{display:none;}
+.hdr{background:linear-gradient(135deg,#5a0000,#8B1A1A);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.hdr-logo{width:28px;height:28px;object-fit:contain;border-radius:50%;}
+.hdr-t{color:#FFD700;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px;flex:1;}
+.live-dot{display:inline-flex;align-items:center;gap:3px;background:rgba(0,180,0,0.2);border:1.5px solid #00cc00;border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700;color:#00dd00;white-space:nowrap;}
+.live-dot::before{content:'';width:6px;height:6px;background:#00ee00;border-radius:50%;display:inline-block;animation:blink 1.2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.role-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.r-admin{background:#FFD700;color:#5a0000;}
+.r-public{background:#90CAF9;color:#0D47A1;}
+.hdr-btns{display:flex;gap:4px;}
+.ibtn{background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:13px;white-space:nowrap;}
+/* TABS */
+.tabs{display:flex;background:var(--card);border-bottom:3px solid var(--border);overflow-x:auto;}
+.tab{flex:0 0 auto;padding:11px 10px;font-size:13px;font-weight:700;text-align:center;border:none;background:none;cursor:pointer;color:var(--muted);white-space:nowrap;}
+.tab.active{color:var(--red);border-bottom:3px solid var(--red);margin-bottom:-3px;}
+/* PAGES */
+.page{display:none;}.page.active{display:block;}
+/* SUMMARY CARDS */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px;}
+.sc{border-radius:14px;padding:14px;text-align:center;color:#fff;}
+.sc .sl{font-size:12px;opacity:1;margin-bottom:4px;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;}
+.sc .sa{font-size:22px;font-weight:700;}
+.c1{background:linear-gradient(135deg,#546E7A,#263238);}
+.c2{background:linear-gradient(135deg,#2E7D32,#1B5E20);}
+.c3{background:linear-gradient(135deg,#C62828,#8B1A1A);}
+.c4{background:linear-gradient(135deg,#1565C0,#0D47A1);grid-column:1/-1;}
+.c4 .sa{font-size:26px;}
+/* FILTER BAR */
+.fbar{padding:0 10px 8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.fbar select,.fbar input{flex:1;min-width:100px;padding:9px 12px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);outline:none;color:var(--text);font-weight:600;}
+.abtn{background:linear-gradient(135deg,#FF6B00,#cc4400);color:#fff;border:none;border-radius:8px;padding:9px 13px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;}
+/* ADVANCED SEARCH */
+.adv-search{margin:0 10px 8px;background:var(--card2);border-radius:10px;padding:10px;border:1.5px solid var(--border);}
+.adv-search .row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;}
+.adv-search label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px;font-weight:700;text-transform:uppercase;}
+.adv-search input,.adv-search select{width:100%;padding:8px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;background:var(--card);color:var(--text);font-weight:600;}
+/* SEARCH BAR */
+.sbar{padding:0 10px 8px;}
+.sinp{width:100%;padding:10px 14px 10px 36px;border:2px solid var(--border);border-radius:20px;font-size:14px;outline:none;background:var(--card);color:var(--text);font-weight:600;}
+.sinp:focus{border-color:#FF6B00;}
+.sw{position:relative;}
+.sw::before{content:'🔍';position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;}
+/* SECTIONS */
+.stitle{padding:8px 12px 6px;font-size:16px;font-weight:700;color:var(--red);display:flex;justify-content:space-between;align-items:center;}
+/* MONTHLY SUMMARY CARDS */
+.mcards{padding:0 10px 6px;display:flex;flex-direction:column;gap:8px;}
+.mcard{background:var(--card);border:1.5px solid var(--gold);border-radius:12px;padding:12px 14px;border-left:5px solid var(--gold);}
+.mcard .mm{font-weight:700;color:var(--red);font-size:16px;margin-bottom:6px;}
+.mcard .mr{display:flex;justify-content:space-between;font-size:15px;color:var(--text);margin-bottom:3px;font-weight:500;}
+.vg{color:#1B5E20;font-weight:700;}.vr{color:#B71C1C;font-weight:700;}.vb{color:#0D47A1;font-weight:700;}
+/* TABLE */
+.twrap{padding:0 10px 10px;overflow-x:auto;}
+.ttbl{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden;font-size:14px;}
+.ttbl th{background:linear-gradient(135deg,#5a0000,#8B1A1A);color:#FFD700;padding:10px 8px;text-align:left;font-size:12px;font-weight:700;}
+.ttbl td{padding:11px 8px;border-bottom:1.5px solid var(--border);vertical-align:middle;font-size:13px;color:var(--text);font-weight:500;}
+.ttbl tr:last-child td{border-bottom:none;}
+.ttbl tr:nth-child(even) td{background:var(--card2);}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.bi{background:#C8E6C9;color:#1B5E20;}.be{background:#FFCDD2;color:#B71C1C;}
+.cat-badge{display:inline-block;padding:3px 9px;border-radius:8px;font-size:13px;background:#FFE0B2;color:#BF360C;font-weight:700;}
+.rcpt-badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;background:#E3F2FD;color:#1565C0;font-weight:700;margin-left:3px;}
+.pay-badge{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700;margin-left:3px;}
+.pay-cash{background:#E8F5E9;color:#2E7D32;}
+.pay-upi{background:#EDE7F6;color:#4527A0;}
+.pay-bank{background:#E3F2FD;color:#1565C0;}
+.actn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:5px;font-size:16px;}
+.emsg{text-align:center;color:var(--muted);padding:20px;font-size:15px;}
+/* PDF BAR */
+.pdfbar{padding:0 10px 12px;display:flex;gap:8px;}
+.pdfbtn{flex:1;padding:12px 6px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;}
+.pdf-dl{background:linear-gradient(135deg,#C62828,#8B1A1A);color:#fff;}
+.pdf-wa{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;}
+.pdf-yr{background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;}
+/* DONOR CARDS */
+.donor-grid{padding:0 10px 10px;display:flex;flex-direction:column;gap:8px;}
+.donor-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;}
+.donor-card .dn{font-weight:700;font-size:15px;color:var(--text);}
+.donor-card .dc{font-size:12px;color:var(--muted);}
+.donor-card .da{font-size:17px;font-weight:700;color:#1B5E20;}
+.donor-card .dct{font-size:11px;background:#FFE0B2;color:#BF360C;padding:2px 8px;border-radius:8px;font-weight:600;}
+/* EVENT CARDS */
+.event-cards{padding:0 10px 10px;display:flex;flex-direction:column;gap:8px;}
+.event-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;border-left:5px solid #FF6B00;}
+.event-card.past{border-left-color:#aaa;opacity:0.7;}
+.event-card .et{font-weight:700;font-size:16px;color:var(--text);}
+.event-card .ed{font-size:13px;color:var(--muted);margin-top:3px;}
+.edays{font-size:13px;font-weight:700;padding:3px 10px;border-radius:8px;display:inline-block;margin-top:5px;}
+.edays.soon{background:#FFE0B2;color:#BF360C;}
+.edays.today{background:#C8E6C9;color:#1B5E20;}
+.edays.past{background:#F5F5F5;color:#777;}
+/* PUJA SCHEDULE */
+.puja-grid{padding:0 10px 10px;display:flex;flex-direction:column;gap:8px;}
+.puja-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;border-left:5px solid #8B1A1A;}
+.puja-card .pt{font-weight:700;font-size:15px;color:var(--red);}
+.puja-card .pd{font-size:13px;color:var(--muted);}
+.puja-time{font-size:12px;background:#FFE0B2;color:#BF360C;padding:2px 8px;border-radius:8px;font-weight:700;display:inline-block;margin-top:4px;}
+/* VOLUNTEER CARDS */
+.vol-grid{padding:0 10px 10px;display:flex;flex-direction:column;gap:8px;}
+.vol-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;}
+.vol-card .vn{font-weight:700;font-size:15px;color:var(--text);}
+.vol-card .vd{font-size:12px;color:var(--muted);}
+.duty-badge{font-size:11px;background:#E8F5E9;color:#2E7D32;padding:2px 8px;border-radius:8px;font-weight:700;}
+/* BACKUP */
+.backup-box{padding:12px;display:flex;flex-direction:column;gap:10px;}
+.bbtn{padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;}
+.b-export{background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;}
+.b-import{background:linear-gradient(135deg,#2E7D32,#1B5E20);color:#fff;}
+.b-info{background:var(--card2);border:1.5px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--muted);line-height:1.8;font-weight:500;}
+/* CHARTS */
+.chart-box{margin:10px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px;}
+.chart-title{font-size:14px;font-weight:700;color:var(--red);margin-bottom:10px;}
+/* MODALS */
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;}
+.moverlay.open{display:flex;}
+.mdl{background:var(--card);border-radius:16px;width:100%;max-width:340px;overflow:hidden;animation:su .2s ease;margin:auto;}
+@keyframes su{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mhdr{background:linear-gradient(135deg,#5a0000,#8B1A1A);padding:14px 16px;color:#FFD700;font-size:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+.mclose{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;}
+.mbdy{padding:14px;}
+.fr{margin-bottom:12px;}
+.fr label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;}
+.fr input,.fr select,.fr textarea{width:100%;padding:11px 13px;border:2px solid var(--border);border-radius:8px;font-size:15px;outline:none;font-family:sans-serif;color:var(--text);background:var(--card);}
+.fr textarea{height:65px;resize:none;font-size:14px;}
+.fr input:focus,.fr select:focus,.fr textarea:focus{border-color:#FF6B00;}
+.mftr{padding:0 14px 14px;display:flex;gap:8px;}
+.bsave{flex:1;padding:12px;background:linear-gradient(135deg,#8B1A1A,#FF6B00);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
+.bcancel{flex:1;padding:12px;background:var(--card2);border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600;color:var(--text);}
+.bdel{flex:1;padding:12px;background:#C62828;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
+.perr{color:#c00;font-size:12px;margin-top:5px;min-height:16px;font-weight:600;}
+.reset-info{background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:8px;padding:9px 11px;font-size:12px;color:#BF360C;margin-bottom:10px;font-weight:500;}
+/* OPENING BAL BAR */
+#opBalBar{background:var(--card);border:2px solid var(--gold);border-radius:10px;margin:0 10px 8px;padding:10px 12px;display:none;align-items:center;gap:8px;flex-wrap:wrap;}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:500;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;}
+body *{font-weight:700!important;}
+input,select,textarea,button{font-weight:700!important;}
+/* DARK MODE TOGGLE */
+.dm-btn{background:rgba(255,255,255,0.15);border:none;color:#fff;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:16px;}
+/* RECEIPT COUNTER */
+.rcpt-next{font-size:11px;color:var(--muted);margin-top:3px;}
+/* ANNUAL SUMMARY */
+.annual-grid{padding:0 10px 10px;display:flex;flex-direction:column;gap:6px;}
+.annual-row{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;}
+.annual-row .am{font-weight:700;font-size:14px;color:var(--text);}
+.annual-row .ainc{color:#1B5E20;font-size:13px;}
+.annual-row .aexp{color:#B71C1C;font-size:13px;}
+.annual-row .abal{color:#0D47A1;font-size:13px;font-weight:700;}
+/* PUJA WEEK HEADER */
+.week-hdr{font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;padding:6px 12px 2px;letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <img id="loginLogo" src="" class="l-logo" alt="Temple Logo" style="display:none">
+  <div class="l-title">🛕 Temple Accounts</div>
+  <div class="l-sub">கோயில் கணக்கு பதிவேடு</div>
+  <div class="l-box">
+    <h3>🔐 Login / உள்நுழைய</h3>
+    <label class="lbl">Username</label>
+    <input class="linp" type="text" id="lu" placeholder="admin / public" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')"/>
+    <label class="lbl">Password</label>
+    <input class="linp" type="password" id="lp" placeholder="••••••" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="lbtn" onclick="doLogin()">Login →</button>
+    <div class="lerr" id="lerr">❌ Wrong username or password</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-t">
+      <span>🛕</span>
+      <span id="appTitle">Temple Accounts</span>
+      <span class="role-badge" id="roleBadge"></span>
+      <span class="live-dot" id="liveDot">Live</span>
+    </div>
+    <div class="hdr-btns">
+      <button class="ibtn" onclick="toggleLang()" id="langBtn">த/E</button>
+      <button class="dm-btn" onclick="toggleDark()" id="darkBtn">🌙</button>
+      <button class="ibtn" id="pwdBtn" onclick="openPwd()" style="display:none">🔑</button>
+      <button class="ibtn" onclick="doLogout()">🚪</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(0)" id="tab0">📊 Accounts</button>
+    <button class="tab" onclick="switchTab(1)" id="tab1">👤 Donors</button>
+    <button class="tab" onclick="switchTab(2)" id="tab2">📅 Events</button>
+    <button class="tab" onclick="switchTab(3)" id="tab3">🛕 Puja</button>
+    <button class="tab" onclick="switchTab(4)" id="tab4">👥 Volunteers</button>
+    <button class="tab" onclick="switchTab(5)" id="tab5">📊 Annual</button>
+    <button class="tab" onclick="switchTab(6)" id="tab6">💾 Backup</button>
+    <button class="tab" onclick="switchTab(7)" id="tab7">⚙️ Settings</button>
+  </div>
+
+  <!-- PAGE 0: ACCOUNTS -->
+  <div class="page active" id="page0">
+    <div class="sg">
+      <div class="sc c1" onclick="editOpeningBal()" style="cursor:pointer"><div class="sl" id="lOp">Opening ✏️</div><div class="sa" id="sOp">₹0</div></div>
+      <div class="sc c2"><div class="sl" id="lIn">Income</div><div class="sa" id="sIn">₹0</div></div>
+      <div class="sc c3"><div class="sl" id="lEx">Expense</div><div class="sa" id="sEx">₹0</div></div>
+      <div class="sc c4"><div class="sl" id="lBal">💰 Balance</div><div class="sa" id="sBal">₹0</div></div>
+    </div>
+    <!-- Opening Balance Bar -->
+    <div id="opBalBar" style="display:none">
+      <span style="font-size:13px;color:var(--red);">💰 Opening Balance:</span>
+      <input type="number" id="opBalInput" style="flex:1;min-width:100px;padding:8px;border:2px solid var(--border);border-radius:7px;font-size:15px;" placeholder="0" min="0"/>
+      <button onclick="saveOpeningBal()" style="background:linear-gradient(135deg,#8B1A1A,#FF6B00);color:#fff;border:none;border-radius:7px;padding:9px 14px;font-size:13px;cursor:pointer;">✓ Save</button>
+      <button onclick="document.getElementById('opBalBar').style.display='none'" style="background:var(--card2);border:none;border-radius:7px;padding:9px 12px;font-size:13px;cursor:pointer;">✕</button>
+    </div>
+    <!-- FILTER BAR -->
+    <div class="fbar">
+      <select id="mf" onchange="renderAll()"></select>
+      <select id="catFilter" onchange="renderAll()" style="font-size:15px;">
+        <option value="">All Categories</option>
+        <option value="Archana">Archana</option>
+        <option value="Pooja">Pooja</option>
+        <option value="Monthly">Monthly</option>
+        <option value="Donation">Donation</option>
+        <option value="Festival">Festival</option>
+        <option value="Salary">Salary</option>
+        <option value="Maintenance">Maintenance</option>
+        <option value="Electricity">Electricity</option>
+        <option value="Cleaning">Cleaning</option>
+      </select>
+      <button class="abtn" id="addBtn" onclick="openAdd()" style="display:none">+</button>
+    </div>
+    <!-- ADVANCED SEARCH -->
+    <div id="advSearch" style="display:none" class="adv-search">
+      <div class="row">
+        <div>
+          <label>From Date</label>
+          <input type="date" id="dateFrom" onchange="renderAll()">
+        </div>
+        <div>
+          <label>To Date</label>
+          <input type="date" id="dateTo" onchange="renderAll()">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Pay Mode</label>
+          <select id="payFilter" onchange="renderAll()">
+            <option value="">All</option>
+            <option value="Cash">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="Bank">Bank Transfer</option>
+          </select>
+        </div>
+        <div>
+          <label>Type</label>
+          <select id="typeFilter" onchange="renderAll()">
+            <option value="">All</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="clearAdvSearch()" style="font-size:12px;color:#c00;background:none;border:none;cursor:pointer;">✕ Clear filters</button>
+    </div>
+    <div class="fbar" style="padding-top:0">
+      <div class="sw" style="flex:1"><input class="sinp" type="text" id="searchInp" placeholder="Search name / amount..." oninput="renderAll()"></div>
+      <button class="ibtn" onclick="toggleAdvSearch()" style="background:var(--card2);color:var(--text);border:1.5px solid var(--border);">⚙️</button>
+    </div>
+    <div class="stitle" id="tMonthlySummary">📅 Monthly Summary</div>
+    <div class="mcards" id="mcards"></div>
+    <div class="stitle" style="margin-top:4px">
+      <span id="tTransactions">📋 Transactions</span>
+      <span id="txCount" style="font-size:11px;color:var(--muted);"></span>
+    </div>
+    <div class="twrap">
+      <table class="ttbl">
+        <thead><tr><th id="thDate">Date</th><th id="thName">Name</th><th id="thType">Type</th><th id="thAmt">Amount</th><th id="thAct"></th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="emsg" id="emsg" style="display:none">No transactions</div>
+    </div>
+    <div class="pdfbar" id="pdfbar">
+      <button class="pdfbtn pdf-dl" onclick="generatePDF('download')">📄 PDF</button>
+      <button class="pdfbtn pdf-wa" onclick="sendWAMonthlyReport()">💬 WA Report</button>
+      <button class="pdfbtn pdf-yr" onclick="switchTab(5)">📊 Annual</button>
+    </div>
+    <!-- CHART -->
+    <div class="chart-box" id="chartBox">
+      <div class="chart-title">📊 Income vs Expense</div>
+      <canvas id="txChart" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- PAGE 1: DONORS -->
+  <div class="page" id="page1">
+    <div class="stitle"><span id="tDonors">👤 Donor List</span><button class="abtn" id="addDonorBtn" onclick="openAddDonor()" style="display:none;padding:4px 10px;font-size:11px">+ Add</button></div>
+    <div class="fbar" style="padding-top:0">
+      <div class="sw" style="flex:1"><input class="sinp" type="text" id="donorSearch" placeholder="Search donor..." oninput="renderDonors()"></div>
+    </div>
+    <div class="donor-grid" id="donorGrid"></div>
+  </div>
+
+  <!-- PAGE 2: EVENTS -->
+  <div class="page" id="page2">
+    <div class="stitle"><span id="tEvents">📅 Events</span><button class="abtn" id="addEventBtn" onclick="openAddEvent()" style="display:none;padding:4px 10px;font-size:11px">+ Add</button></div>
+    <div id="reminderBox" style="margin:0 10px 8px;padding:10px;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;display:none;">
+      <div style="font-size:13px;font-weight:700;color:#BF360C;margin-bottom:6px;">⏰ Upcoming Reminders</div>
+      <div id="reminderList"></div>
+    </div>
+    <div class="event-cards" id="eventCards"></div>
+  </div>
+
+  <!-- PAGE 3: PUJA SCHEDULE -->
+  <div class="page" id="page3">
+    <div class="stitle"><span>🛕 Puja Schedule</span><button class="abtn" id="addPujaBtn" onclick="openAddPuja()" style="display:none;padding:4px 10px;font-size:11px">+ Add</button></div>
+    <div id="pujaCards"></div>
+  </div>
+
+  <!-- PAGE 4: VOLUNTEERS -->
+  <div class="page" id="page4">
+    <div class="stitle"><span>👥 Volunteers</span><button class="abtn" id="addVolBtn" onclick="openAddVol()" style="display:none;padding:4px 10px;font-size:11px">+ Add</button></div>
+    <div class="fbar" style="padding-top:0">
+      <div class="sw" style="flex:1"><input class="sinp" type="text" id="volSearch" placeholder="Search volunteer..." oninput="renderVols()"></div>
+    </div>
+    <div class="vol-grid" id="volGrid"></div>
+  </div>
+
+  <!-- PAGE 5: ANNUAL SUMMARY -->
+  <div class="page" id="page5">
+    <div class="stitle"><span>📊 Annual Summary</span>
+      <button onclick="downloadAnnualPDF()" style="background:linear-gradient(135deg,#C62828,#8B1A1A);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer;">📄 PDF</button>
+    </div>
+    <div id="yearSelect" style="padding:0 10px 8px"><select id="selYear" onchange="renderAnnual()" style="width:100%;padding:9px;border:2px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);"></select></div>
+    <div class="annual-grid" id="annualGrid"></div>
+    <div class="chart-box">
+      <div class="chart-title">📈 Annual Chart</div>
+      <canvas id="annualChart" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- PAGE 6: BACKUP -->
+  <div class="page" id="page6">
+    <div class="stitle" id="tBackup">💾 Backup & Restore</div>
+    <div class="backup-box">
+      <div class="b-info">📱 Export: Save all data as JSON file<br>📂 Import: Restore from backup<br>⚠️ Import செய்தால் தற்போதைய data மாறும்!</div>
+      <button class="bbtn b-export" onclick="exportData()">📤 Export / Backup Data</button>
+      <button class="bbtn b-import" onclick="document.getElementById('importFile').click()">📂 Import / Restore Data</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+
+  <!-- PAGE 7: SETTINGS -->
+  <div class="page" id="page7">
+    <div class="stitle">⚙️ Settings</div>
+
+    <!-- CATEGORY MANAGER -->
+    <div style="margin:0 10px 10px;background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#5a0000,#8B1A1A);padding:12px 14px;color:#FFD700;font-size:15px;font-weight:700;">
+        🏷️ Category Manager
+      </div>
+      <div style="padding:12px;">
+        <!-- Add New Category -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <input type="text" id="newCatInp" placeholder="New category name..." style="flex:1;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:15px;background:var(--card);color:var(--text);outline:none;" onfocus="this.style.borderColor='#FF6B00'" onblur="this.style.borderColor=''" onkeydown="if(event.key==='Enter')addCategory()"/>
+          <button onclick="addCategory()" style="background:linear-gradient(135deg,#8B1A1A,#FF6B00);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-size:15px;cursor:pointer;white-space:nowrap;">+ Add</button>
+        </div>
+        <!-- Category List -->
+        <div id="catManagerList" style="display:flex;flex-direction:column;gap:6px;"></div>
+        <div style="margin-top:10px;padding:8px 10px;background:var(--card2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.7;">
+          💡 Categories-ஐ add/delete பண்ணலாம்<br>
+          ✅ Filter, Entry modal எல்லாமே auto-update ஆகும்
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSWORD CHANGE -->
+    <div style="margin:0 10px 10px;background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1565C0,#0D47A1);padding:12px 14px;color:#fff;font-size:15px;font-weight:700;">
+        🔑 Change Password
+      </div>
+      <div style="padding:12px;">
+        <div style="margin-bottom:8px;">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">Change for:</label>
+          <select id="pwdRole2" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:15px;background:var(--card);color:var(--text);">
+            <option value="admin">Admin</option>
+            <option value="public">Public / View</option>
+          </select>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">Current Password</label>
+          <input type="password" id="pc2" placeholder="••••••" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:15px;background:var(--card);color:var(--text);" readonly onfocus="this.removeAttribute('readonly')"/>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">New Password</label>
+          <input type="password" id="pn2" placeholder="••••••" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:15px;background:var(--card);color:var(--text);" readonly onfocus="this.removeAttribute('readonly')"/>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;">Confirm Password</label>
+          <input type="password" id="pcf2" placeholder="••••••" style="width:100%;padding:10px;border:2px solid var(--border);border-radius:8px;font-size:15px;background:var(--card);color:var(--text);" readonly onfocus="this.removeAttribute('readonly')"/>
+        </div>
+        <div id="perr2" style="color:#c00;font-size:13px;margin-bottom:8px;min-height:16px;"></div>
+        <button onclick="changePwd2()" style="width:100%;padding:13px;background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;">🔑 Change Password</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TX MODAL -->
+<div class="moverlay" id="txM">
+  <div class="mdl">
+    <div class="mhdr"><span id="mtitle">New Entry</span><button class="mclose" onclick="closeM('txM')">✕</button></div>
+    <div class="mbdy">
+      <div class="fr"><label>Date</label><input type="date" id="fd"/></div>
+      <div class="fr"><label>Name</label>
+        <div style="position:relative;">
+          <input type="text" id="fn" placeholder="Name" readonly onfocus="this.removeAttribute('readonly');showNameSugg()" oninput="showNameSugg()" onblur="setTimeout(hideNameSugg,250)" autocomplete="off" style="width:100%;"/>
+          <div id="nameSuggBox" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card);border:2px solid #FF6B00;border-radius:8px;z-index:9999;max-height:180px;overflow-y:auto;box-shadow:0 6px 20px var(--shadow);margin-top:2px;"></div>
+        </div>
+      </div>
+      <div class="fr"><label>Description</label><input type="text" id="fdesc" placeholder="optional" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Type</label>
+        <select id="ft"><option value="income">Income / வரவு</option><option value="expense">Expense / செலவு</option></select>
+      </div>
+      <div class="fr"><label>Category</label>
+        <select id="fcat" onchange="toggleCustomCat()">
+          <option value="">-- Select --</option>
+          <option value="Archana">Archana</option>
+          <option value="Pooja">Pooja</option>
+          <option value="Monthly">Monthly</option>
+          <option value="Donation">Donation</option>
+          <option value="Festival">Festival</option>
+          <option value="Salary">Salary</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Electricity">Electricity</option>
+          <option value="Cleaning">Cleaning</option>
+          <option value="Other">✏️ Other</option>
+        </select>
+      </div>
+      <div class="fr" id="customCatRow" style="display:none;margin-top:-8px">
+        <input type="text" id="fcatCustom" placeholder="Type category..." style="border:2px solid #FF6B00;border-radius:8px;padding:10px;font-size:14px;width:100%;background:var(--card2);" onfocus="this.style.outline='none'"/>
+      </div>
+      <div class="fr"><label>Payment Mode</label>
+        <select id="fpay">
+          <option value="Cash">💵 Cash</option>
+          <option value="UPI">📱 UPI</option>
+          <option value="Bank">🏦 Bank Transfer</option>
+        </select>
+      </div>
+      <div class="fr"><label>Amount ₹</label><input type="number" id="fa" placeholder="0" min="0" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr" style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1"><label>Receipt No.</label><input type="text" id="frcpt" placeholder="Auto"/></div>
+        <div style="margin-top:16px;font-size:11px;color:var(--muted);" id="nextRcptHint"></div>
+      </div>
+    </div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('txM')">Cancel</button><button class="bsave" onclick="saveTx()">Save ✓</button></div>
+  </div>
+</div>
+
+<!-- DELETE TX MODAL -->
+<div class="moverlay" id="delM">
+  <div class="mdl">
+    <div class="mhdr"><span>🗑️ Confirm Delete</span><button class="mclose" onclick="closeM('delM')">✕</button></div>
+    <div class="mbdy"><p style="font-size:13px;color:var(--muted);line-height:1.7">Delete this entry?<br><strong id="dname" style="color:#8B1A1A"></strong></p></div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('delM')">Cancel</button><button class="bdel" onclick="confirmDel()">Delete 🗑️</button></div>
+  </div>
+</div>
+
+<!-- DONOR MODAL -->
+<div class="moverlay" id="donorM">
+  <div class="mdl">
+    <div class="mhdr"><span id="donorMTitle">Add Donor</span><button class="mclose" onclick="closeM('donorM')">✕</button></div>
+    <div class="mbdy">
+      <div class="fr"><label>Name</label><input type="text" id="dName" placeholder="Donor name" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Phone</label><input type="tel" id="dPhone" placeholder="9999999999" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Category</label>
+        <select id="dCat"><option value="Archana">Archana</option><option value="Pooja">Pooja</option><option value="Donation">Donation</option><option value="Festival">Festival</option><option value="Other">Other</option></select>
+      </div>
+      <div class="fr"><label>Total Donated ₹</label><input type="number" id="dAmt" placeholder="0" min="0" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Notes</label><textarea id="dNotes" placeholder="Any notes..."></textarea></div>
+    </div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('donorM')">Cancel</button><button class="bsave" onclick="saveDonor()">Save ✓</button></div>
+  </div>
+</div>
+
+<!-- DELETE DONOR MODAL -->
+<div class="moverlay" id="delDonorM">
+  <div class="mdl">
+    <div class="mhdr"><span>🗑️ Delete Donor</span><button class="mclose" onclick="closeM('delDonorM')">✕</button></div>
+    <div class="mbdy"><p style="font-size:13px;color:var(--muted)">Delete this donor?<br><strong id="delDonorName" style="color:#8B1A1A"></strong></p></div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('delDonorM')">Cancel</button><button class="bdel" onclick="confirmDelDonor()">Delete 🗑️</button></div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="moverlay" id="eventM">
+  <div class="mdl">
+    <div class="mhdr"><span id="eventMTitle">Add Event</span><button class="mclose" onclick="closeM('eventM')">✕</button></div>
+    <div class="mbdy">
+      <div class="fr"><label>Event Name</label><input type="text" id="eName" placeholder="e.g. Karthigai Deepam" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Date</label><input type="date" id="eDate"/></div>
+      <div class="fr"><label>Description</label><textarea id="eDesc" placeholder="Details..."></textarea></div>
+      <div class="fr"><label>WhatsApp Reminder (days before)</label>
+        <select id="eReminder">
+          <option value="0">No reminder</option>
+          <option value="1">1 day before</option>
+          <option value="3">3 days before</option>
+          <option value="7">7 days before</option>
+          <option value="15">15 days before</option>
+        </select>
+      </div>
+    </div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('eventM')">Cancel</button><button class="bsave" onclick="saveEvent()">Save ✓</button></div>
+  </div>
+</div>
+
+<!-- DELETE EVENT MODAL -->
+<div class="moverlay" id="delEventM">
+  <div class="mdl">
+    <div class="mhdr"><span>🗑️ Delete Event</span><button class="mclose" onclick="closeM('delEventM')">✕</button></div>
+    <div class="mbdy"><p style="font-size:13px;color:var(--muted)">Delete this event?<br><strong id="delEventName" style="color:#8B1A1A"></strong></p></div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('delEventM')">Cancel</button><button class="bdel" onclick="confirmDelEvent()">Delete 🗑️</button></div>
+  </div>
+</div>
+
+<!-- PUJA MODAL -->
+<div class="moverlay" id="pujaM">
+  <div class="mdl">
+    <div class="mhdr"><span id="pujaMTitle">Add Puja</span><button class="mclose" onclick="closeM('pujaM')">✕</button></div>
+    <div class="mbdy">
+      <div class="fr"><label>Puja Name</label><input type="text" id="pujaName" placeholder="e.g. Subramanya Puja" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Day / Frequency</label>
+        <select id="pujaDay">
+          <option value="Daily">Daily / தினமும்</option>
+          <option value="Monday">Monday / திங்கள்</option>
+          <option value="Tuesday">Tuesday / செவ்வாய்</option>
+          <option value="Wednesday">Wednesday / புதன்</option>
+          <option value="Thursday">Thursday / வியாழன்</option>
+          <option value="Friday">Friday / வெள்ளி</option>
+          <option value="Saturday">Saturday / சனி</option>
+          <option value="Sunday">Sunday / ஞாயிறு</option>
+          <option value="Pournami">Pournami / பௌர்ணமி</option>
+          <option value="Amavasai">Amavasai / அமாவாசை</option>
+          <option value="Monthly">Monthly / மாதம்</option>
+        </select>
+      </div>
+      <div class="fr"><label>Time</label><input type="time" id="pujaTime"/></div>
+      <div class="fr"><label>Priest / Responsible</label><input type="text" id="pujaResp" placeholder="Name" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Notes</label><textarea id="pujaDesc" placeholder="Details..."></textarea></div>
+    </div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('pujaM')">Cancel</button><button class="bsave" onclick="savePuja()">Save ✓</button></div>
+  </div>
+</div>
+
+<!-- VOLUNTEER MODAL -->
+<div class="moverlay" id="volM">
+  <div class="mdl">
+    <div class="mhdr"><span id="volMTitle">Add Volunteer</span><button class="mclose" onclick="closeM('volM')">✕</button></div>
+    <div class="mbdy">
+      <div class="fr"><label>Name</label><input type="text" id="vName" placeholder="Volunteer name" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Phone</label><input type="tel" id="vPhone" placeholder="9999999999" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Duty / Role</label>
+        <select id="vDuty">
+          <option value="Priest">Priest / அர்ச்சகர்</option>
+          <option value="Treasurer">Treasurer / கோஷ்டி</option>
+          <option value="Cleaning">Cleaning / சுத்தம்</option>
+          <option value="Decoration">Decoration / அலங்காரம்</option>
+          <option value="Security">Security / பாதுகாப்பு</option>
+          <option value="Cooking">Cooking / சமையல்</option>
+          <option value="Accounts">Accounts / கணக்கு</option>
+          <option value="General">General / பொது</option>
+        </select>
+      </div>
+      <div class="fr"><label>Schedule</label><input type="text" id="vSchedule" placeholder="e.g. Every Friday" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Notes</label><textarea id="vNotes" placeholder="Any notes..."></textarea></div>
+    </div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('volM')">Cancel</button><button class="bsave" onclick="saveVol()">Save ✓</button></div>
+  </div>
+</div>
+
+<!-- DELETE VOLUNTEER MODAL -->
+<div class="moverlay" id="delVolM">
+  <div class="mdl">
+    <div class="mhdr"><span>🗑️ Delete Volunteer</span><button class="mclose" onclick="closeM('delVolM')">✕</button></div>
+    <div class="mbdy"><p style="font-size:13px;color:var(--muted)">Delete?<br><strong id="delVolName" style="color:#8B1A1A"></strong></p></div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('delVolM')">Cancel</button><button class="bdel" onclick="confirmDelVol()">Delete 🗑️</button></div>
+  </div>
+</div>
+
+<!-- PASSWORD MODAL -->
+<div class="moverlay" id="pwdM">
+  <div class="mdl">
+    <div class="mhdr"><span>🔑 Change Password</span><button class="mclose" onclick="closeM('pwdM')">✕</button></div>
+    <div class="mbdy">
+      <div class="fr"><label>Change for:</label>
+        <select id="pwdRole"><option value="admin">Admin</option><option value="public">Public</option></select>
+      </div>
+      <div class="fr"><label>Current Password</label><input type="password" id="pc" placeholder="••••••" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>New Password</label><input type="password" id="pn" placeholder="••••••" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="fr"><label>Confirm</label><input type="password" id="pcf" placeholder="••••••" readonly onfocus="this.removeAttribute('readonly')"/></div>
+      <div class="perr" id="perr"></div>
+    </div>
+    <div class="mftr"><button class="bcancel" onclick="closeM('pwdM')">Cancel</button><button class="bsave" onclick="changePwd()">Change ✓</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══ LANGUAGE ══
+const MN=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MNta=['','ஜன','பிப்','மார்','ஏப்','மே','ஜூன்','ஜூலை','ஆக','செப்','அக்','நவ','டிச'];
+
+// ══ DB ══
+let DB={
+  admin:{username:'admin',password:'temple123'},
+  public:{username:'public',password:'view123',lastReset:Date.now()},
+  transactions:[
+    {id:1,date:'2026-04-06',name:'VASANTH',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'Cash',receipt:'T001'},
+    {id:2,date:'2026-04-07',name:'SUDHAKAR',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'UPI',receipt:'T002'},
+    {id:3,date:'2026-04-07',name:'RAMESH',desc:'Maintenance',type:'income',category:'Donation',amount:800,payMode:'Cash',receipt:'T003'},
+    {id:4,date:'2026-04-07',name:'Venkay',desc:'',type:'income',category:'Donation',amount:800,payMode:'Cash',receipt:'T004'},
+    {id:5,date:'2026-04-07',name:'SARAN ANNA',desc:'',type:'income',category:'Donation',amount:800,payMode:'UPI',receipt:'T005'},
+    {id:6,date:'2026-04-07',name:'RAJA ANNA ISA',desc:'Maintenance',type:'income',category:'Donation',amount:800,payMode:'Bank',receipt:'T006'},
+    {id:7,date:'2026-04-07',name:'LAKKY AKKA USA',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'Bank',receipt:'T007'},
+    {id:8,date:'2026-04-07',name:'BALAJI USA',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'Bank',receipt:'T008'},
+    {id:9,date:'2026-04-08',name:'Dhayalan Chithappa',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'Cash',receipt:'T009'},
+    {id:10,date:'2026-04-09',name:'Nagaraj PLS Chithappa',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'Cash',receipt:'T010'},
+    {id:11,date:'2026-04-17',name:'Ramakrishnan Chithappa',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'UPI',receipt:'T011'},
+    {id:12,date:'2026-04-17',name:'Bala CBE',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'UPI',receipt:'T012'},
+    {id:13,date:'2026-04-25',name:'Giri',desc:'Monthly',type:'income',category:'Donation',amount:800,payMode:'Cash',receipt:'T013'},
+    {id:14,date:'2026-04-25',name:'Stamp paper 4th chit',desc:'',type:'expense',category:'Other',amount:300,payMode:'Cash',receipt:'T014'},
+    {id:15,date:'2026-04-28',name:'Camera Net',desc:'',type:'expense',category:'Maintenance',amount:600,payMode:'Cash',receipt:'T015'},
+    {id:16,date:'2026-05-01',name:'Aiyer salary',desc:'Monthly',type:'expense',category:'Salary',amount:6000,payMode:'Cash',receipt:'T016'},
+  ],
+  openingBalance:0,
+  donors:[],
+  events:[],
+  pujas:[
+    {id:1,name:'Subramanya Puja',day:'Friday',time:'06:00',resp:'Aiyer',desc:'Every Friday morning'},
+    {id:2,name:'Abishekam',day:'Monday',time:'07:00',resp:'Aiyer',desc:'Monday special'},
+    {id:3,name:'Daily Puja',day:'Daily',time:'06:30',resp:'Aiyer',desc:'Morning & Evening'},
+    {id:4,name:'Pournami Puja',day:'Pournami',time:'18:00',resp:'Aiyer',desc:'Full moon special puja'},
+  ],
+  volunteers:[],
+  nextId:17,nextDonorId:1,nextEventId:1,nextPujaId:5,nextVolId:1,nextReceipt:17
+};
+try{if(localStorage.getItem('tDB4'))DB=JSON.parse(localStorage.getItem('tDB4'));}catch(e){}
+
+// ══ SAVE ══
+const save=()=>{
+  localStorage.setItem('tDB4',JSON.stringify(DB));
+  if(window.firebaseDB){
+    const dbRef=window.firebaseRef(window.firebaseDB,'temple-accounts/data');
+    window.firebaseSet(dbRef,DB).catch(e=>console.log(e));
+  }
+};
+
+let lang='en', currentRole=null, isAdmin=false, isDark=false;
+let eId=null, dId=null, editDonorId=null, delDonorId=null;
+let editEventId=null, delEventId=null, editPujaId=null, editVolId=null, delVolId=null;
+let txChart=null, annualChart=null;
+
+// ══ DARK MODE ══
+function toggleDark(){
+  isDark=!isDark;
+  document.body.classList.toggle('dark-mode',isDark);
+  document.getElementById('darkBtn').textContent=isDark?'☀️':'🌙';
+  setTimeout(()=>{if(txChart)renderChart();if(annualChart)renderAnnualChart();},100);
+}
+
+// ══ TABS ══
+let currentTab=0;
+function switchTab(n){
+  currentTab=n;
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===n));
+  if(n===1)renderDonors();
+  if(n===2){renderEvents();checkReminders();}
+  if(n===3)renderPujas();
+  if(n===4)renderVols();
+  if(n===5)renderAnnual();
+  if(n===7)renderCatManager();
+}
+
+// ══ LANG ══
+function toggleLang(){lang=lang==='en'?'ta':'en';document.getElementById('langBtn').textContent=lang==='en'?'த/E':'E/த';fillMonths();renderAll();}
+
+// ══ LOGIN ══
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  if(u===DB.admin.username&&p===DB.admin.password)enterApp('admin');
+  else if(u===DB.public.username&&p===DB.public.password)enterApp('public');
+  else document.getElementById('lerr').style.display='block';
+}
+function enterApp(role){
+  currentRole=role;isAdmin=(role==='admin');
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  const b=document.getElementById('roleBadge');
+  b.textContent=isAdmin?'Admin':'View Only';
+  b.className='role-badge '+(isAdmin?'r-admin':'r-public');
+  document.getElementById('addBtn').style.display=isAdmin?'flex':'none';
+  document.getElementById('addDonorBtn').style.display=isAdmin?'flex':'none';
+  document.getElementById('addEventBtn').style.display=isAdmin?'flex':'none';
+  document.getElementById('addPujaBtn').style.display=isAdmin?'flex':'none';
+  document.getElementById('addVolBtn').style.display=isAdmin?'flex':'none';
+  document.getElementById('pwdBtn').style.display=isAdmin?'inline-block':'none';
+  document.getElementById('pdfbar').style.display=isAdmin?'flex':'none';
+  document.getElementById('tab6').style.display=isAdmin?'':'none';
+  document.getElementById('tab7').style.display=isAdmin?'':'none';
+  fillMonths();renderAll();fillYears();checkReminders();updateAllCatDropdowns();
+  setTimeout(()=>loadFromFirebase(),500);
+}
+function doLogout(){
+  currentRole=null;isAdmin=false;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+  document.getElementById('lerr').style.display='none';
+  switchTab(0);
+}
+
+// ══ OPENING BALANCE ══
+function editOpeningBal(){
+  if(!isAdmin){toast('⚠️ Admin only');return;}
+  const bar=document.getElementById('opBalBar');
+  bar.style.display=bar.style.display==='flex'?'none':'flex';
+  document.getElementById('opBalInput').value=DB.openingBalance||0;
+}
+function saveOpeningBal(){
+  DB.openingBalance=parseFloat(document.getElementById('opBalInput').value)||0;
+  save();document.getElementById('opBalBar').style.display='none';
+  renderAll();toast('✅ Opening balance saved');
+}
+
+// ══ DATA ══
+function fillMonths(){
+  const sel=document.getElementById('mf');
+  const ms=[...new Set(DB.transactions.map(t=>t.date.slice(0,7)))].sort().reverse();
+  const MA=lang==='ta'?MNta:MN;
+  const prev=sel.value;
+  sel.innerHTML=`<option value="">${lang==='ta'?'அனைத்து மாதங்கள்':'All Months'}</option>`;
+  ms.forEach(m=>{const[y,mo]=m.split('-');sel.innerHTML+=`<option value="${m}">${MA[+mo]} ${y}</option>`;});
+  if(prev)sel.value=prev;
+}
+function fillYears(){
+  const sel=document.getElementById('selYear');
+  const yrs=[...new Set(DB.transactions.map(t=>t.date.slice(0,4)))].sort().reverse();
+  const cur=new Date().getFullYear().toString();
+  if(!yrs.includes(cur))yrs.unshift(cur);
+  sel.innerHTML=yrs.map(y=>`<option value="${y}">${y}</option>`).join('');
+}
+function filtered(){
+  const f=document.getElementById('mf').value;
+  const cat=document.getElementById('catFilter').value;
+  const pay=document.getElementById('payFilter').value;
+  const type=document.getElementById('typeFilter').value;
+  const from=document.getElementById('dateFrom').value;
+  const to=document.getElementById('dateTo').value;
+  const q=document.getElementById('searchInp').value.toLowerCase().trim();
+  let txs=DB.transactions;
+  if(f)txs=txs.filter(t=>t.date.startsWith(f));
+  if(cat)txs=txs.filter(t=>t.category===cat);
+  if(pay)txs=txs.filter(t=>(t.payMode||'Cash')===pay);
+  if(type)txs=txs.filter(t=>t.type===type);
+  if(from)txs=txs.filter(t=>t.date>=from);
+  if(to)txs=txs.filter(t=>t.date<=to);
+  if(q)txs=txs.filter(t=>t.name.toLowerCase().includes(q)||String(t.amount).includes(q)||(t.category||'').toLowerCase().includes(q)||(t.receipt||'').toLowerCase().includes(q));
+  return txs;
+}
+function renderAll(){renderSum();renderMonths();renderTx();renderChart();}
+
+function renderSum(){
+  const f=document.getElementById('mf').value;
+  const globalOp=DB.openingBalance||0;
+  let op=globalOp;
+  if(f){const prev=DB.transactions.filter(t=>t.date.slice(0,7)<f);op=globalOp+prev.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)-prev.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);}
+  const fx=filtered();
+  const inc=fx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const exp=fx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const fmt=n=>'₹'+n.toLocaleString('en-IN');
+  document.getElementById('sOp').textContent=fmt(op);
+  document.getElementById('sIn').textContent=fmt(inc);
+  document.getElementById('sEx').textContent=fmt(exp);
+  document.getElementById('sBal').textContent=fmt(op+inc-exp);
+}
+function renderMonths(){
+  const f=document.getElementById('mf').value;
+  const ms=[...new Set(DB.transactions.map(t=>t.date.slice(0,7)))].sort();
+  const MA=lang==='ta'?MNta:MN;
+  let op=DB.openingBalance||0,html='';
+  ms.forEach(m=>{
+    const mt=DB.transactions.filter(t=>t.date.startsWith(m));
+    const inc=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const exp=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const cl=op+inc-exp;
+    if(!f||m===f){const[y,mo]=m.split('-');
+      // Payment mode breakdown
+      const cash=mt.filter(t=>t.type==='income'&&(t.payMode||'Cash')==='Cash').reduce((s,t)=>s+t.amount,0);
+      const upi=mt.filter(t=>t.type==='income'&&t.payMode==='UPI').reduce((s,t)=>s+t.amount,0);
+      const bank=mt.filter(t=>t.type==='income'&&t.payMode==='Bank').reduce((s,t)=>s+t.amount,0);
+      html+=`<div class="mcard">
+      <div class="mm">📅 ${MA[+mo]} ${y}</div>
+      <div class="mr"><span>Opening</span><span>₹${op.toLocaleString('en-IN')}</span></div>
+      <div class="mr"><span>Income</span><span class="vg">+₹${inc.toLocaleString('en-IN')}</span></div>
+      <div class="mr"><span>Expense</span><span class="vr">-₹${exp.toLocaleString('en-IN')}</span></div>
+      <div class="mr"><span><b>Closing</b></span><span class="vb"><b>₹${cl.toLocaleString('en-IN')}</b></span></div>
+      ${inc>0?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;display:flex;gap:8px;flex-wrap:wrap;">
+        ${cash?`<span>💵 Cash: ₹${cash.toLocaleString('en-IN')}</span>`:''}
+        ${upi?`<span>📱 UPI: ₹${upi.toLocaleString('en-IN')}</span>`:''}
+        ${bank?`<span>🏦 Bank: ₹${bank.toLocaleString('en-IN')}</span>`:''}
+      </div>`:''}
+      </div>`;
+    }
+    op=cl;
+  });
+  document.getElementById('mcards').innerHTML=html||`<div class="emsg">No data</div>`;
+}
+function renderTx(){
+  const txs=filtered().slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const tb=document.getElementById('tbody');
+  document.getElementById('txCount').textContent=txs.length?`(${txs.length})`:''
+  if(!txs.length){tb.innerHTML='';document.getElementById('emsg').style.display='block';return;}
+  document.getElementById('emsg').style.display='none';
+  const MA=lang==='ta'?MNta:MN;
+  tb.innerHTML=txs.map(t=>{
+    const[y,m,d]=t.date.split('-');
+    const cat=t.category?`<br><span class="cat-badge">${t.category}</span>`:'';
+    const rcpt=t.receipt?`<span class="rcpt-badge">${t.receipt}</span>`:'';
+    const pay=t.payMode?`<span class="pay-badge ${t.payMode==='UPI'?'pay-upi':t.payMode==='Bank'?'pay-bank':'pay-cash'}">${t.payMode==='UPI'?'📱':t.payMode==='Bank'?'🏦':'💵'}</span>`:'';
+    const waBtn=isAdmin&&t.type==='income'?`<button class="actn" onclick="sendWAThanks(${t.id})" title="WhatsApp">📲</button>`:'';
+    const acts=isAdmin?`<td><button class="actn" onclick="openEdit(${t.id})">✏️</button><button class="actn" onclick="openDel(${t.id})">🗑️</button>${waBtn}</td>`:`<td></td>`;
+    return`<tr><td>${d} ${MA[+m]}</td><td>${t.name}${cat}${rcpt}${pay}</td>
+    <td><span class="badge ${t.type==='income'?'bi':'be'}">${t.type==='income'?'Inc':'Exp'}</span></td>
+    <td style="color:${t.type==='income'?'#1B5E20':'#B71C1C'};font-weight:700">${t.type==='income'?'+':'-'}₹${t.amount.toLocaleString('en-IN')}</td>${acts}</tr>`;
+  }).join('');
+}
+
+// ══ CHART ══
+function renderChart(){
+  const ms=[...new Set(DB.transactions.map(t=>t.date.slice(0,7)))].sort().slice(-6);
+  const MA=lang==='ta'?MNta:MN;
+  const labels=ms.map(m=>{const[y,mo]=m.split('-');return MA[+mo];});
+  const inc=ms.map(m=>DB.transactions.filter(t=>t.date.startsWith(m)&&t.type==='income').reduce((s,t)=>s+t.amount,0));
+  const exp=ms.map(m=>DB.transactions.filter(t=>t.date.startsWith(m)&&t.type==='expense').reduce((s,t)=>s+t.amount,0));
+  const ctx=document.getElementById('txChart').getContext('2d');
+  if(txChart)txChart.destroy();
+  txChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+    {label:'Income',data:inc,backgroundColor:'rgba(46,125,50,0.7)',borderColor:'#2E7D32',borderWidth:2},
+    {label:'Expense',data:exp,backgroundColor:'rgba(198,40,40,0.7)',borderColor:'#C62828',borderWidth:2}
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:isDark?'#f5e6c0':'#333',font:{weight:'bold'}}}},scales:{x:{ticks:{color:isDark?'#a08050':'#555'}},y:{ticks:{color:isDark?'#a08050':'#555',callback:v=>'₹'+v.toLocaleString('en-IN')}}}}});
+}
+
+// ══ ANNUAL ══
+function renderAnnual(){
+  fillYears();
+  const yr=document.getElementById('selYear').value||new Date().getFullYear().toString();
+  const ms=Array.from({length:12},(_,i)=>`${yr}-${String(i+1).padStart(2,'0')}`);
+  const MA=lang==='ta'?MNta:MN;
+  let op=DB.openingBalance||0;
+  // Calculate opening for the year
+  const prevTxs=DB.transactions.filter(t=>t.date.slice(0,4)<yr);
+  op=op+prevTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)-prevTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  let html='';let totalInc=0,totalExp=0;
+  const chartInc=[],chartExp=[],chartLabels=[];
+  ms.forEach(m=>{
+    const mt=DB.transactions.filter(t=>t.date.startsWith(m));
+    const inc=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const exp=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const cl=op+inc-exp;
+    const[,mo]=m.split('-');
+    totalInc+=inc;totalExp+=exp;
+    chartInc.push(inc);chartExp.push(exp);chartLabels.push(MA[+mo]);
+    if(inc||exp){
+      html+=`<div class="annual-row">
+        <div class="am">${MA[+mo]}</div>
+        <div class="ainc">+₹${inc.toLocaleString('en-IN')}</div>
+        <div class="aexp">-₹${exp.toLocaleString('en-IN')}</div>
+        <div class="abal">₹${cl.toLocaleString('en-IN')}</div>
+      </div>`;
+    }
+    op=cl;
+  });
+  html+=`<div class="annual-row" style="background:linear-gradient(135deg,#1565C0,#0D47A1);color:#fff;border:none">
+    <div style="font-size:14px;color:#fff;">📊 Total ${yr}</div>
+    <div style="color:#A5D6A7;font-size:13px;">+₹${totalInc.toLocaleString('en-IN')}</div>
+    <div style="color:#EF9A9A;font-size:13px;">-₹${totalExp.toLocaleString('en-IN')}</div>
+    <div style="color:#fff;font-size:13px;font-weight:700;">₹${(totalInc-totalExp).toLocaleString('en-IN')}</div>
+  </div>`;
+  document.getElementById('annualGrid').innerHTML=html||'<div class="emsg">No data for this year</div>';
+  // Annual chart
+  const ctx=document.getElementById('annualChart').getContext('2d');
+  if(annualChart)annualChart.destroy();
+  annualChart=new Chart(ctx,{type:'bar',data:{labels:chartLabels,datasets:[
+    {label:'Income',data:chartInc,backgroundColor:'rgba(46,125,50,0.7)',borderColor:'#2E7D32',borderWidth:2},
+    {label:'Expense',data:chartExp,backgroundColor:'rgba(198,40,40,0.7)',borderColor:'#C62828',borderWidth:2}
+  ]},options:{responsive:true,plugins:{legend:{labels:{color:isDark?'#f5e6c0':'#333',font:{weight:'bold'}}}},scales:{x:{ticks:{color:isDark?'#a08050':'#555'}},y:{ticks:{color:isDark?'#a08050':'#555',callback:v=>'₹'+v.toLocaleString('en-IN')}}}}});
+}
+
+function downloadAnnualPDF(){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const yr=document.getElementById('selYear').value||new Date().getFullYear().toString();
+  doc.setFontSize(14);doc.setTextColor(139,26,26);
+  doc.text('Sri Veeramathi Amman & Sri Muniyappan Temple',105,12,{align:'center'});
+  doc.setFontSize(12);doc.setTextColor(90,0,0);
+  doc.text(`Annual Summary - ${yr}`,105,19,{align:'center'});
+  const ms=Array.from({length:12},(_,i)=>`${yr}-${String(i+1).padStart(2,'0')}`);
+  const MA=MN;
+  let op=DB.openingBalance||0;
+  const prevTxs=DB.transactions.filter(t=>t.date.slice(0,4)<yr);
+  op=op+prevTxs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)-prevTxs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const rows=[];let tI=0,tE=0;
+  ms.forEach(m=>{
+    const mt=DB.transactions.filter(t=>t.date.startsWith(m));
+    const inc=mt.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const exp=mt.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const cl=op+inc-exp;
+    const[,mo]=m.split('-');
+    tI+=inc;tE+=exp;
+    rows.push([MA[+mo]+' '+yr,'₹'+op.toLocaleString('en-IN'),'₹'+inc.toLocaleString('en-IN'),'₹'+exp.toLocaleString('en-IN'),'₹'+cl.toLocaleString('en-IN')]);
+    op=cl;
+  });
+  rows.push(['TOTAL','','₹'+tI.toLocaleString('en-IN'),'₹'+tE.toLocaleString('en-IN'),'₹'+(tI-tE).toLocaleString('en-IN')]);
+  doc.autoTable({startY:25,head:[['Month','Opening','Income','Expense','Closing']],body:rows,styles:{fontSize:9},headStyles:{fillColor:[139,26,26],textColor:255},margin:{left:10,right:10}});
+  doc.save(`temple-annual-${yr}.pdf`);toast('📄 Annual PDF downloaded!');
+}
+
+// ══ ADVANCED SEARCH ══
+let advOpen=false;
+function toggleAdvSearch(){
+  advOpen=!advOpen;
+  document.getElementById('advSearch').style.display=advOpen?'block':'none';
+}
+function clearAdvSearch(){
+  document.getElementById('dateFrom').value='';
+  document.getElementById('dateTo').value='';
+  document.getElementById('payFilter').value='';
+  document.getElementById('typeFilter').value='';
+  document.getElementById('catFilter').value='';
+  renderAll();
+}
+
+// ══ TX CRUD ══
+function nextReceipt(){
+  const n=DB.nextReceipt||DB.transactions.length+1;
+  return'T'+String(n).padStart(3,'0');
+}
+function toggleCustomCat(){
+  const val=document.getElementById('fcat').value;
+  document.getElementById('customCatRow').style.display=val==='Other'?'block':'none';
+  if(val!=='Other')document.getElementById('fcatCustom').value='';
+}
+function openAdd(){
+  eId=null;
+  document.getElementById('mtitle').textContent='➕ New Entry';
+  document.getElementById('fd').value=new Date().toISOString().split('T')[0];
+  document.getElementById('fn').value='';document.getElementById('fdesc').value='';
+  document.getElementById('ft').value='income';document.getElementById('fcat').value='';
+  document.getElementById('fa').value='';document.getElementById('fpay').value='Cash';
+  document.getElementById('customCatRow').style.display='none';document.getElementById('fcatCustom').value='';
+  const nr=nextReceipt();
+  document.getElementById('frcpt').value=nr;
+  document.getElementById('nextRcptHint').textContent='Next: '+nr;
+  openM('txM');
+}
+function openEdit(id){
+  eId=id;const t=DB.transactions.find(x=>x.id===id);
+  document.getElementById('mtitle').textContent='✏️ Edit Entry';
+  document.getElementById('fd').value=t.date;document.getElementById('fn').value=t.name;
+  document.getElementById('fdesc').value=t.desc||'';document.getElementById('ft').value=t.type;
+  document.getElementById('fpay').value=t.payMode||'Cash';
+  document.getElementById('frcpt').value=t.receipt||'';
+  const stdCats=['Archana','Pooja','Monthly','Donation','Festival','Salary','Maintenance','Electricity','Cleaning'];
+  if(stdCats.includes(t.category)){document.getElementById('fcat').value=t.category;document.getElementById('customCatRow').style.display='none';document.getElementById('fcatCustom').value='';}
+  else if(t.category){document.getElementById('fcat').value='Other';document.getElementById('customCatRow').style.display='block';document.getElementById('fcatCustom').value=t.category;}
+  else{document.getElementById('fcat').value='';document.getElementById('customCatRow').style.display='none';}
+  document.getElementById('fa').value=t.amount;openM('txM');
+}
+function saveTx(){
+  const date=document.getElementById('fd').value,name=document.getElementById('fn').value.trim();
+  const desc=document.getElementById('fdesc').value.trim(),type=document.getElementById('ft').value;
+  const catSel=document.getElementById('fcat').value;
+  const catCustom=document.getElementById('fcatCustom').value.trim();
+  const category=catSel==='Other'?catCustom:catSel;
+  const amount=parseFloat(document.getElementById('fa').value);
+  const payMode=document.getElementById('fpay').value;
+  const receipt=document.getElementById('frcpt').value.trim()||nextReceipt();
+  if(!date||!name||!amount||amount<=0){toast('⚠️ Fill all fields');return;}
+  if(eId){
+    const t=DB.transactions.find(x=>x.id===eId);
+    t.date=date;t.name=name;t.desc=desc;t.type=type;t.category=category;t.amount=amount;t.payMode=payMode;t.receipt=receipt;
+    toast('✅ Updated');
+  } else {
+    DB.transactions.push({id:DB.nextId++,date,name,desc,type,category,amount,payMode,receipt});
+    DB.nextReceipt=(DB.nextReceipt||DB.transactions.length)+1;
+    toast('✅ Saved');
+  }
+  save();closeM('txM');fillMonths();renderAll();
+}
+function openDel(id){dId=id;const t=DB.transactions.find(x=>x.id===id);document.getElementById('dname').textContent=`${t.name} — ₹${t.amount}`;openM('delM');}
+function confirmDel(){DB.transactions=DB.transactions.filter(t=>t.id!==dId);save();closeM('delM');fillMonths();renderAll();toast('🗑️ Deleted');}
+
+// ══ WHATSAPP ══
+function sendWAThanks(id){
+  const t=DB.transactions.find(x=>x.id===id);
+  if(!t)return;
+  const[y,m,d]=t.date.split('-');
+  const donor=DB.donors.find(x=>x.name.toLowerCase()===t.name.toLowerCase());
+  const msg=`🙏 வணக்கம் ${t.name},\n\n🛕 ஸ்ரீ வீரமாத்தி அம்மன் & ஸ்ரீ முனியப்பன் கோயில், சங்ககிரி\n\n✅ உங்கள் நன்கொடை பெறப்பட்டது\n💰 தொகை: ₹${t.amount.toLocaleString('en-IN')}\n📅 தேதி: ${d}/${m}/${y}\n🧾 ரசீது: ${t.receipt||'-'}\n💳 கட்டணம்: ${t.payMode||'Cash'}\n🏷️ வகை: ${t.category||'நன்கொடை'}\n\nகோயிலுக்கு உங்கள் ஆதரவுக்கு நன்றி! 🙏\n\n_Sri Veeramathi Amman & Sri Muniyappan Temple, Sankagiri_`;
+  const phone=donor&&donor.phone?donor.phone.replace(/\D/g,''):'';
+  const url=phone?`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+
+function sendWAMonthlyReport(){
+  const f=document.getElementById('mf').value;
+  const globalOp=DB.openingBalance||0;
+  let op=globalOp;
+  if(f){const prev=DB.transactions.filter(t=>t.date.slice(0,7)<f);op=globalOp+prev.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)-prev.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);}
+  const fx=filtered();
+  const inc=fx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const exp=fx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const bal=op+inc-exp;
+  const cash=fx.filter(t=>t.type==='income'&&(t.payMode||'Cash')==='Cash').reduce((s,t)=>s+t.amount,0);
+  const upi=fx.filter(t=>t.type==='income'&&t.payMode==='UPI').reduce((s,t)=>s+t.amount,0);
+  const bank=fx.filter(t=>t.type==='income'&&t.payMode==='Bank').reduce((s,t)=>s+t.amount,0);
+  const period=f?`${MN[+f.split('-')[1]]} ${f.split('-')[0]}`:'All Months';
+  const dateStr=new Date().toLocaleDateString('en-IN');
+  let msg=`📊 *Temple Accounts Report*\n🗓️ ${period}\n📅 As on ${dateStr}\n\n`;
+  msg+=`💰 Opening:  ₹${op.toLocaleString('en-IN')}\n`;
+  msg+=`✅ Income:   ₹${inc.toLocaleString('en-IN')}\n`;
+  msg+=`❌ Expense:  ₹${exp.toLocaleString('en-IN')}\n`;
+  msg+=`🏦 *Balance: ₹${bal.toLocaleString('en-IN')}*\n\n`;
+  msg+=`💳 *Payment Mode:*\n`;
+  if(cash)msg+=`  💵 Cash: ₹${cash.toLocaleString('en-IN')}\n`;
+  if(upi)msg+=`  📱 UPI: ₹${upi.toLocaleString('en-IN')}\n`;
+  if(bank)msg+=`  🏦 Bank: ₹${bank.toLocaleString('en-IN')}\n`;
+  msg+=`\n📋 *Top Transactions:*\n`;
+  const top=fx.slice().sort((a,b)=>b.amount-a.amount).slice(0,5);
+  top.forEach(t=>{const[y,m,d]=t.date.split('-');msg+=`  ${d}/${m} ${t.name}: ${t.type==='income'?'+':'-'}₹${t.amount.toLocaleString('en-IN')}\n`;});
+  msg+=`\n_Sri Veeramathi Amman & Sri Muniyappan Temple, Sankagiri_ 🛕`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ══ DONORS ══
+function renderDonors(){
+  const q=document.getElementById('donorSearch').value.toLowerCase();
+  let donors=DB.donors.filter(d=>!q||d.name.toLowerCase().includes(q)||(d.category||'').toLowerCase().includes(q));
+  donors=donors.slice().sort((a,b)=>b.amount-a.amount);
+  const grid=document.getElementById('donorGrid');
+  if(!donors.length){grid.innerHTML='<div class="emsg">No donors found</div>';return;}
+  grid.innerHTML=donors.map(d=>`
+    <div class="donor-card">
+      <div>
+        <div class="dn">${d.name}</div>
+        <div class="dc">${d.phone||'No phone'}</div>
+        ${d.notes?`<div class="dc">${d.notes}</div>`:''}
+        <span class="dct">${d.category||'Other'}</span>
+      </div>
+      <div style="text-align:right">
+        <div class="da">₹${d.amount.toLocaleString('en-IN')}</div>
+        <div style="margin-top:5px;display:flex;gap:3px;justify-content:flex-end">
+          ${d.phone?`<button class="actn" onclick="sendWADonor(${d.id})" title="Thanks">📲</button>`:''}
+          ${d.phone?`<button class="actn" onclick="sendWAReminder(${d.id})" title="Reminder">⏰</button>`:''}
+          ${isAdmin?`<button class="actn" onclick="openEditDonor(${d.id})">✏️</button><button class="actn" onclick="openDelDonor(${d.id})">🗑️</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+function openAddDonor(){editDonorId=null;document.getElementById('donorMTitle').textContent='Add Donor';document.getElementById('dName').value='';document.getElementById('dPhone').value='';document.getElementById('dCat').value='Archana';document.getElementById('dAmt').value='';document.getElementById('dNotes').value='';openM('donorM');}
+function openEditDonor(id){editDonorId=id;const d=DB.donors.find(x=>x.id===id);document.getElementById('donorMTitle').textContent='Edit Donor';document.getElementById('dName').value=d.name;document.getElementById('dPhone').value=d.phone||'';document.getElementById('dCat').value=d.category||'Other';document.getElementById('dAmt').value=d.amount;document.getElementById('dNotes').value=d.notes||'';openM('donorM');}
+function saveDonor(){
+  const name=document.getElementById('dName').value.trim();
+  const phone=document.getElementById('dPhone').value.trim();
+  const category=document.getElementById('dCat').value;
+  const amount=parseFloat(document.getElementById('dAmt').value)||0;
+  const notes=document.getElementById('dNotes').value.trim();
+  if(!name){toast('⚠️ Name required');return;}
+  if(editDonorId){const d=DB.donors.find(x=>x.id===editDonorId);d.name=name;d.phone=phone;d.category=category;d.amount=amount;d.notes=notes;toast('✅ Updated');}
+  else{DB.donors.push({id:DB.nextDonorId++,name,phone,category,amount,notes});toast('✅ Added');}
+  save();closeM('donorM');renderDonors();
+}
+function openDelDonor(id){delDonorId=id;const d=DB.donors.find(x=>x.id===id);document.getElementById('delDonorName').textContent=d.name;openM('delDonorM');}
+function confirmDelDonor(){DB.donors=DB.donors.filter(d=>d.id!==delDonorId);save();closeM('delDonorM');renderDonors();toast('🗑️ Deleted');}
+function sendWADonor(id){
+  const d=DB.donors.find(x=>x.id===id);if(!d||!d.phone)return;
+  const phone=d.phone.replace(/\D/g,'');
+  const msg=`🙏 வணக்கம் ${d.name},\n\n🛕 ஸ்ரீ வீரமாத்தி அம்மன் கோயில், சங்ககிரி\n\nமொத்த நன்கொடை: ₹${d.amount.toLocaleString('en-IN')}\nவகை: ${d.category||'நன்கொடை'}\n\nஉங்கள் ஆதரவுக்கு மிக்க நன்றி! 🙏`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function sendWAReminder(id){
+  const d=DB.donors.find(x=>x.id===id);if(!d||!d.phone)return;
+  const phone=d.phone.replace(/\D/g,'');
+  const now=new Date();
+  const month=MN[now.getMonth()+1]+' '+now.getFullYear();
+  const msg=`🙏 வணக்கம் ${d.name},\n\n🛕 ஸ்ரீ வீரமாத்தி அம்மன் கோயில், சங்ககிரி\n\n⏰ ${month} மாத நன்கொடை நினைவூட்டல்\n\nகோயிலுக்கு உங்கள் பங்களிப்பை வழங்கவும்.\n\nநன்றி! 🙏`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ══ EVENTS ══
+function renderEvents(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const events=DB.events.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const cards=document.getElementById('eventCards');
+  if(!events.length){cards.innerHTML='<div class="emsg">No events added</div>';return;}
+  cards.innerHTML=events.map(e=>{
+    const evDate=new Date(e.date);evDate.setHours(0,0,0,0);
+    const diff=Math.round((evDate-today)/(1000*60*60*24));
+    let daysLabel,daysClass,cardClass='event-card';
+    if(diff<0){daysLabel=`${Math.abs(diff)} days ago`;daysClass='past';cardClass='event-card past';}
+    else if(diff===0){daysLabel='Today! 🎉';daysClass='today';}
+    else if(diff<=7){daysLabel=`In ${diff} days ⚡`;daysClass='soon';}
+    else{daysLabel=`In ${diff} days`;daysClass='soon';}
+    const[y,m,d]=e.date.split('-');
+    const remText=e.reminder&&e.reminder!='0'?`<br><span style="font-size:11px;color:#888">⏰ Reminder: ${e.reminder} days before</span>`:'';
+    return`<div class="${cardClass}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="et">🎪 ${e.name}</div>
+          <div class="ed">📅 ${d} ${MN[+m]} ${y}</div>
+          ${e.desc?`<div class="ed">📝 ${e.desc}</div>`:''}
+          <span class="edays ${daysClass}">${daysLabel}</span>${remText}
+          ${diff>0&&diff<=parseInt(e.reminder||0)?`<br><button onclick="sendEventReminder(${e.id})" style="margin-top:5px;background:#25D366;color:#fff;border:none;border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;">📲 Send WA Reminder</button>`:''}
+        </div>
+        ${isAdmin?`<div><button class="actn" onclick="openEditEvent(${e.id})">✏️</button><button class="actn" onclick="openDelEvent(${e.id})">🗑️</button></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function checkReminders(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const upcoming=DB.events.filter(e=>{
+    if(!e.reminder||e.reminder==='0')return false;
+    const evDate=new Date(e.date);evDate.setHours(0,0,0,0);
+    const diff=Math.round((evDate-today)/(1000*60*60*24));
+    return diff>0&&diff<=parseInt(e.reminder);
+  });
+  const box=document.getElementById('reminderBox');
+  const list=document.getElementById('reminderList');
+  if(!upcoming.length){box.style.display='none';return;}
+  box.style.display='block';
+  list.innerHTML=upcoming.map(e=>{
+    const evDate=new Date(e.date);evDate.setHours(0,0,0,0);
+    const diff=Math.round((evDate-today)/(1000*60*60*24));
+    return`<div style="font-size:12px;margin-bottom:4px;">🎪 <b>${e.name}</b> — in ${diff} days
+      <button onclick="sendEventReminder(${e.id})" style="margin-left:6px;background:#25D366;color:#fff;border:none;border-radius:5px;padding:2px 8px;font-size:10px;cursor:pointer;">📲 WA</button>
+    </div>`;
+  }).join('');
+}
+function sendEventReminder(id){
+  const e=DB.events.find(x=>x.id===id);if(!e)return;
+  const[y,m,d]=e.date.split('-');
+  const evDate=new Date(e.date);evDate.setHours(0,0,0,0);
+  const today=new Date();today.setHours(0,0,0,0);
+  const diff=Math.round((evDate-today)/(1000*60*60*24));
+  const msg=`🛕 *கோயில் நிகழ்வு தகவல்*\n\n🎪 ${e.name}\n📅 ${d}/${m}/${y}\n⏰ ${diff} நாட்கள் மட்டுமே!\n\n${e.desc?`📝 ${e.desc}\n\n`:''}_Sri Veeramathi Amman & Sri Muniyappan Temple, Sankagiri_ 🙏`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+function openAddEvent(){editEventId=null;document.getElementById('eventMTitle').textContent='Add Event';document.getElementById('eName').value='';document.getElementById('eDate').value='';document.getElementById('eDesc').value='';document.getElementById('eReminder').value='0';openM('eventM');}
+function openEditEvent(id){editEventId=id;const e=DB.events.find(x=>x.id===id);document.getElementById('eventMTitle').textContent='Edit Event';document.getElementById('eName').value=e.name;document.getElementById('eDate').value=e.date;document.getElementById('eDesc').value=e.desc||'';document.getElementById('eReminder').value=e.reminder||'0';openM('eventM');}
+function saveEvent(){
+  const name=document.getElementById('eName').value.trim();
+  const date=document.getElementById('eDate').value;
+  const desc=document.getElementById('eDesc').value.trim();
+  const reminder=document.getElementById('eReminder').value;
+  if(!name||!date){toast('⚠️ Name and date required');return;}
+  if(editEventId){const e=DB.events.find(x=>x.id===editEventId);e.name=name;e.date=date;e.desc=desc;e.reminder=reminder;toast('✅ Updated');}
+  else{DB.events.push({id:DB.nextEventId++,name,date,desc,reminder});toast('✅ Added');}
+  save();closeM('eventM');renderEvents();
+}
+function openDelEvent(id){delEventId=id;const e=DB.events.find(x=>x.id===id);document.getElementById('delEventName').textContent=e.name;openM('delEventM');}
+function confirmDelEvent(){DB.events=DB.events.filter(e=>e.id!==delEventId);save();closeM('delEventM');renderEvents();toast('🗑️ Deleted');}
+
+// ══ PUJA SCHEDULE ══
+const DAY_ORDER=['Daily','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','Pournami','Amavasai','Monthly'];
+function renderPujas(){
+  const pujas=DB.pujas||[];
+  const container=document.getElementById('pujaCards');
+  if(!pujas.length){container.innerHTML='<div class="emsg">No puja schedule added</div>';return;}
+  const groups={};
+  pujas.forEach(p=>{if(!groups[p.day])groups[p.day]=[];groups[p.day].push(p);});
+  let html='';
+  DAY_ORDER.forEach(day=>{
+    if(!groups[day])return;
+    html+=`<div class="week-hdr">${day==='Daily'?'🌅 Daily / தினமும்':day==='Pournami'?'🌕 Pournami / பௌர்ணமி':day==='Amavasai'?'🌑 Amavasai / அமாவாசை':day==='Monthly'?'📅 Monthly / மாதம்':'📅 '+day}</div>`;
+    groups[day].forEach(p=>{
+      html+=`<div class="puja-card" style="margin:0 10px 6px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="pt">🛕 ${p.name}</div>
+            ${p.resp?`<div class="pd">👤 ${p.resp}</div>`:''}
+            ${p.desc?`<div class="pd">📝 ${p.desc}</div>`:''}
+            ${p.time?`<span class="puja-time">⏰ ${p.time}</span>`:''}
+          </div>
+          ${isAdmin?`<div><button class="actn" onclick="openEditPuja(${p.id})">✏️</button><button class="actn" onclick="deletePuja(${p.id})">🗑️</button></div>`:''}
+        </div>
+      </div>`;
+    });
+  });
+  container.innerHTML=html;
+}
+function openAddPuja(){editPujaId=null;document.getElementById('pujaMTitle').textContent='Add Puja';document.getElementById('pujaName').value='';document.getElementById('pujaDay').value='Daily';document.getElementById('pujaTime').value='';document.getElementById('pujaResp').value='';document.getElementById('pujaDesc').value='';openM('pujaM');}
+function openEditPuja(id){editPujaId=id;const p=DB.pujas.find(x=>x.id===id);document.getElementById('pujaMTitle').textContent='Edit Puja';document.getElementById('pujaName').value=p.name;document.getElementById('pujaDay').value=p.day;document.getElementById('pujaTime').value=p.time||'';document.getElementById('pujaResp').value=p.resp||'';document.getElementById('pujaDesc').value=p.desc||'';openM('pujaM');}
+function savePuja(){
+  const name=document.getElementById('pujaName').value.trim();
+  const day=document.getElementById('pujaDay').value;
+  const time=document.getElementById('pujaTime').value;
+  const resp=document.getElementById('pujaResp').value.trim();
+  const desc=document.getElementById('pujaDesc').value.trim();
+  if(!name){toast('⚠️ Name required');return;}
+  if(!DB.pujas)DB.pujas=[];
+  if(editPujaId){const p=DB.pujas.find(x=>x.id===editPujaId);p.name=name;p.day=day;p.time=time;p.resp=resp;p.desc=desc;toast('✅ Updated');}
+  else{DB.pujas.push({id:DB.nextPujaId++,name,day,time,resp,desc});toast('✅ Added');}
+  save();closeM('pujaM');renderPujas();
+}
+function deletePuja(id){DB.pujas=DB.pujas.filter(p=>p.id!==id);save();renderPujas();toast('🗑️ Deleted');}
+
+// ══ VOLUNTEERS ══
+function renderVols(){
+  if(!DB.volunteers)DB.volunteers=[];
+  const q=document.getElementById('volSearch').value.toLowerCase();
+  let vols=DB.volunteers.filter(v=>!q||v.name.toLowerCase().includes(q)||(v.duty||'').toLowerCase().includes(q));
+  const grid=document.getElementById('volGrid');
+  if(!vols.length){grid.innerHTML='<div class="emsg">No volunteers added</div>';return;}
+  grid.innerHTML=vols.map(v=>`
+    <div class="vol-card">
+      <div>
+        <div class="vn">${v.name}</div>
+        <div class="vd">${v.phone||'No phone'}</div>
+        ${v.schedule?`<div class="vd">📅 ${v.schedule}</div>`:''}
+        ${v.notes?`<div class="vd">📝 ${v.notes}</div>`:''}
+        <span class="duty-badge">${v.duty||'General'}</span>
+      </div>
+      <div style="text-align:right">
+        ${v.phone?`<button class="actn" onclick="callVol('${v.phone}')" title="Call">📞</button>`:''}
+        ${v.phone?`<button class="actn" onclick="waVol(${v.id})" title="WhatsApp">📲</button>`:''}
+        ${isAdmin?`<button class="actn" onclick="openEditVol(${v.id})">✏️</button><button class="actn" onclick="openDelVol(${v.id})">🗑️</button>`:''}
+      </div>
+    </div>`).join('');
+}
+function openAddVol(){editVolId=null;document.getElementById('volMTitle').textContent='Add Volunteer';document.getElementById('vName').value='';document.getElementById('vPhone').value='';document.getElementById('vDuty').value='General';document.getElementById('vSchedule').value='';document.getElementById('vNotes').value='';openM('volM');}
+function openEditVol(id){editVolId=id;const v=DB.volunteers.find(x=>x.id===id);document.getElementById('volMTitle').textContent='Edit Volunteer';document.getElementById('vName').value=v.name;document.getElementById('vPhone').value=v.phone||'';document.getElementById('vDuty').value=v.duty||'General';document.getElementById('vSchedule').value=v.schedule||'';document.getElementById('vNotes').value=v.notes||'';openM('volM');}
+function saveVol(){
+  const name=document.getElementById('vName').value.trim();
+  const phone=document.getElementById('vPhone').value.trim();
+  const duty=document.getElementById('vDuty').value;
+  const schedule=document.getElementById('vSchedule').value.trim();
+  const notes=document.getElementById('vNotes').value.trim();
+  if(!name){toast('⚠️ Name required');return;}
+  if(!DB.volunteers)DB.volunteers=[];
+  if(editVolId){const v=DB.volunteers.find(x=>x.id===editVolId);v.name=name;v.phone=phone;v.duty=duty;v.schedule=schedule;v.notes=notes;toast('✅ Updated');}
+  else{DB.volunteers.push({id:DB.nextVolId++,name,phone,duty,schedule,notes});toast('✅ Added');}
+  save();closeM('volM');renderVols();
+}
+function openDelVol(id){delVolId=id;const v=DB.volunteers.find(x=>x.id===id);document.getElementById('delVolName').textContent=v.name;openM('delVolM');}
+function confirmDelVol(){DB.volunteers=DB.volunteers.filter(v=>v.id!==delVolId);save();closeM('delVolM');renderVols();toast('🗑️ Deleted');}
+function callVol(phone){window.open('tel:'+phone.replace(/\D/g,''));}
+function waVol(id){
+  const v=DB.volunteers.find(x=>x.id===id);if(!v||!v.phone)return;
+  const phone=v.phone.replace(/\D/g,'');
+  const msg=`🙏 வணக்கம் ${v.name},\n\n🛕 ஸ்ரீ வீரமாத்தி அம்மன் கோயில், சங்ககிரி\n\nஉங்கள் பணி: ${v.duty||'General'}\n${v.schedule?`📅 அட்டவணை: ${v.schedule}\n`:''}\nகோயில் சேவைக்கு நன்றி! 🙏`;
+  window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+// ══ BACKUP ══
+function exportData(){
+  const json=JSON.stringify(DB,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='temple-accounts-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);toast('✅ Backup exported!');
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(!imported.transactions)throw new Error('Invalid');
+      DB=imported;save();fillMonths();fillYears();renderAll();toast('✅ Data restored!');
+    }catch{toast('❌ Invalid backup file');}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+// ══ PASSWORD ══
+function openPwd(){document.getElementById('pc').value='';document.getElementById('pn').value='';document.getElementById('pcf').value='';document.getElementById('perr').textContent='';openM('pwdM');}
+function changePwd(){
+  const role=document.getElementById('pwdRole').value;
+  const cur=document.getElementById('pc').value;
+  const nw=document.getElementById('pn').value;
+  const cf=document.getElementById('pcf').value;
+  const err=document.getElementById('perr');
+  const correct=role==='admin'?DB.admin.password:DB.public.password;
+  if(cur!==correct){err.textContent='❌ Wrong current password';return;}
+  if(nw.length<4){err.textContent='❌ Min 4 characters';return;}
+  if(nw!==cf){err.textContent='❌ Passwords do not match';return;}
+  if(role==='admin')DB.admin.password=nw;else DB.public.password=nw;
+  save();closeM('pwdM');toast('🔑 Password changed!');
+}
+
+// ══ PDF ══
+function generatePDF(action){
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({unit:'mm',format:'a4'});
+  const f=document.getElementById('mf').value;
+  const dateStr=new Date().toLocaleDateString('en-IN');
+  doc.setFontSize(14);doc.setTextColor(139,26,26);
+  doc.text('Sri Veeramathi Amman & Sri Muniyappan Temple',105,12,{align:'center'});
+  doc.setFontSize(11);doc.setTextColor(90,0,0);
+  doc.text('Sankagiri - Accounts Report',105,18,{align:'center'});
+  doc.setFontSize(9);doc.setTextColor(120,120,120);
+  doc.text('Generated: '+dateStr+(f?(' | Period: '+MN[+f.split('-')[1]]+' '+f.split('-')[0]):''),105,22,{align:'center'});
+  const globalOp=DB.openingBalance||0;
+  let op=globalOp;
+  if(f){const prev=DB.transactions.filter(t=>t.date.slice(0,7)<f);op=globalOp+prev.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0)-prev.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);}
+  const fx=filtered();
+  const inc=fx.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const exp=fx.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  let y=28;
+  doc.setFillColor(255,248,231);doc.roundedRect(10,y,190,24,2,2,'F');
+  doc.setFontSize(9);doc.setTextColor(50,50,50);
+  doc.text('Opening: Rs.'+op.toLocaleString('en-IN'),15,y+8);
+  doc.text('Income: Rs.'+inc.toLocaleString('en-IN'),65,y+8);
+  doc.text('Expense: Rs.'+exp.toLocaleString('en-IN'),125,y+8);
+  doc.setFontSize(11);doc.setTextColor(21,101,192);
+  doc.text('Balance: Rs.'+(op+inc-exp).toLocaleString('en-IN'),105,y+18,{align:'center'});
+  y+=30;
+  const txs=filtered().slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const txRows=txs.map(t=>{const[yr,m,d]=t.date.split('-');return[d+' '+MN[+m]+' '+yr,t.name,t.desc||'',t.category||'',t.type==='income'?'Income':'Expense',t.payMode||'Cash',t.receipt||'','Rs.'+t.amount.toLocaleString('en-IN')];});
+  doc.autoTable({startY:y,head:[['Date','Name','Desc','Category','Type','Pay','Receipt','Amount']],body:txRows,styles:{fontSize:7},headStyles:{fillColor:[139,26,26],textColor:255},columnStyles:{7:{halign:'right'}},alternateRowStyles:{fillColor:[255,253,245]},margin:{left:10,right:10}});
+  doc.save('temple-accounts-'+(f||'all')+'.pdf');toast('📄 PDF downloaded!');
+}
+
+// ══ NAME SUGGESTIONS ══
+function showNameSugg(){
+  const inp=document.getElementById('fn');
+  const box=document.getElementById('nameSuggBox');
+  if(!inp||!box)return;
+  const q=inp.value.toLowerCase().trim();
+  const names=[...new Set([...DB.transactions.map(t=>t.name),...(DB.donors||[]).map(d=>d.name)])].filter(Boolean).sort();
+  const f=q?names.filter(n=>n.toLowerCase().includes(q)):names;
+  if(!f.length){box.style.display='none';return;}
+  box.innerHTML=f.map(n=>`<div onmousedown="event.preventDefault();selectName(decodeURIComponent('${encodeURIComponent(n)}'))" style="padding:10px 12px;font-size:14px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);cursor:pointer;background:var(--card);">${n}</div>`).join('');
+  box.style.display='block';
+}
+function hideNameSugg(){const box=document.getElementById('nameSuggBox');if(box)box.style.display='none';}
+function selectName(name){
+  const inp=document.getElementById('fn');if(inp)inp.value=name;
+  hideNameSugg();
+  const lastTx=DB.transactions.filter(t=>t.name===name).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  if(lastTx){
+    document.getElementById('ft').value=lastTx.type||'income';
+    document.getElementById('fpay').value=lastTx.payMode||'Cash';
+    const stdCats=['Archana','Pooja','Monthly','Donation','Festival','Salary','Maintenance','Electricity','Cleaning'];
+    if(lastTx.category){
+      if(stdCats.includes(lastTx.category)){document.getElementById('fcat').value=lastTx.category;document.getElementById('customCatRow').style.display='none';}
+      else{document.getElementById('fcat').value='Other';document.getElementById('customCatRow').style.display='block';document.getElementById('fcatCustom').value=lastTx.category;}
+    }
+    if(lastTx.amount)document.getElementById('fa').value=lastTx.amount;
+  }
+}
+
+// ══ HELPERS ══
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.moverlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+// ══ FIREBASE LOAD ══
+function loadFromFirebase(){
+  if(!window.firebaseDB)return;
+  const dbRef=window.firebaseRef(window.firebaseDB,'temple-accounts/data');
+  window.firebaseGet(dbRef).then(snapshot=>{
+    if(snapshot.exists()){
+      const data=snapshot.val();
+      if(data.transactions)DB.transactions=data.transactions;
+      if(data.donors)DB.donors=data.donors;
+      if(data.events)DB.events=data.events;
+      if(data.pujas)DB.pujas=data.pujas;
+      if(data.volunteers)DB.volunteers=data.volunteers;
+      if(data.nextId)DB.nextId=data.nextId;
+      if(data.nextDonorId)DB.nextDonorId=data.nextDonorId;
+      if(data.nextEventId)DB.nextEventId=data.nextEventId;
+      if(data.nextPujaId)DB.nextPujaId=data.nextPujaId;
+      if(data.nextVolId)DB.nextVolId=data.nextVolId;
+      if(data.nextReceipt)DB.nextReceipt=data.nextReceipt;
+      if(data.openingBalance!==undefined)DB.openingBalance=data.openingBalance;
+      if(data.categories)DB.categories=data.categories;
+      if(data.admin)DB.admin=data.admin;
+      if(data.public)DB.public=data.public;
+      localStorage.setItem('tDB4',JSON.stringify(DB));
+      fillMonths();fillYears();renderAll();updateAllCatDropdowns();
+      document.getElementById('liveDot').style.borderColor='#00cc00';
+      toast('🔄 Synced with Firebase!');
+    }
+  }).catch(e=>console.log('Firebase load error:',e));
+}
+
+// ══ CATEGORY MANAGER ══
+const DEFAULT_CATS=['Archana','Pooja','Monthly','Donation','Festival','Salary','Maintenance','Electricity','Cleaning'];
+
+function getCategories(){
+  return DB.categories&&DB.categories.length?DB.categories:[...DEFAULT_CATS];
+}
+
+function addCategory(){
+  const inp=document.getElementById('newCatInp');
+  const name=inp.value.trim();
+  if(!name){toast('⚠️ Category name required');return;}
+  if(!DB.categories)DB.categories=[...DEFAULT_CATS];
+  if(DB.categories.map(c=>c.toLowerCase()).includes(name.toLowerCase())){toast('⚠️ Already exists!');return;}
+  if(DB.categories.length>=20){toast('⚠️ Max 20 categories');return;}
+  DB.categories.push(name);
+  inp.value='';
+  save();
+  renderCatManager();
+  updateAllCatDropdowns();
+  toast('✅ Category added!');
+}
+
+function deleteCategory(idx){
+  if(!DB.categories)DB.categories=[...DEFAULT_CATS];
+  const name=DB.categories[idx];
+  const inUse=DB.transactions.some(t=>t.category===name);
+  if(inUse){toast('⚠️ In use — cannot delete');return;}
+  DB.categories.splice(idx,1);
+  save();
+  renderCatManager();
+  updateAllCatDropdowns();
+  toast('🗑️ Deleted');
+}
+
+function renderCatManager(){
+  if(!DB.categories)DB.categories=[...DEFAULT_CATS];
+  const cats=DB.categories;
+  const list=document.getElementById('catManagerList');
+  if(!list)return;
+  list.innerHTML=cats.map((c,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card2);border:1.5px solid var(--border);border-radius:9px;" id="catRow${i}">
+      <span style="font-size:15px;color:var(--text);flex:1;" id="catLabel${i}">🏷️ ${c}</span>
+      <input type="text" id="catEdit${i}" value="${c}" style="display:none;flex:1;padding:7px 10px;border:2px solid #FF6B00;border-radius:7px;font-size:15px;background:var(--card);color:var(--text);margin-right:6px;" />
+      <div style="display:flex;gap:5px;">
+        <button id="catEditBtn${i}" onclick="startEditCat(${i})" style="background:#E3F2FD;color:#1565C0;border:none;border-radius:7px;padding:5px 10px;font-size:13px;cursor:pointer;">✏️</button>
+        <button id="catSaveBtn${i}" onclick="saveEditCat(${i})" style="display:none;background:#C8E6C9;color:#1B5E20;border:none;border-radius:7px;padding:5px 10px;font-size:13px;cursor:pointer;">✓</button>
+        <button onclick="deleteCategory(${i})" style="background:#FFCDD2;color:#B71C1C;border:none;border-radius:7px;padding:5px 10px;font-size:13px;cursor:pointer;">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function startEditCat(i){
+  document.getElementById('catLabel'+i).style.display='none';
+  document.getElementById('catEdit'+i).style.display='block';
+  document.getElementById('catEditBtn'+i).style.display='none';
+  document.getElementById('catSaveBtn'+i).style.display='block';
+  document.getElementById('catEdit'+i).focus();
+}
+
+function saveEditCat(i){
+  const newName=document.getElementById('catEdit'+i).value.trim();
+  if(!newName){toast('⚠️ Name required');return;}
+  const cats=DB.categories;
+  const oldName=cats[i];
+  if(cats.filter((_,j)=>j!==i).map(c=>c.toLowerCase()).includes(newName.toLowerCase())){toast('⚠️ Already exists!');return;}
+  // Update all transactions with old category
+  DB.transactions.forEach(t=>{if(t.category===oldName)t.category=newName;});
+  cats[i]=newName;
+  save();
+  renderCatManager();
+  updateAllCatDropdowns();
+  toast('✅ Category updated!');
+}
+
+function updateAllCatDropdowns(){
+  const cats=getCategories();
+  const opts=cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const stdOpts=`<option value="">All Categories</option>${opts}`;
+  // Filter dropdown
+  const cf=document.getElementById('catFilter');
+  if(cf){const prev=cf.value;cf.innerHTML=stdOpts;cf.value=prev;}
+  // Entry modal dropdown
+  const fc=document.getElementById('fcat');
+  if(fc){const prev=fc.value;fc.innerHTML=`<option value="">-- Select --</option>${opts}<option value="Other">✏️ Other</option>`;fc.value=prev;}
+  // Donor modal dropdown
+  const dc=document.getElementById('dCat');
+  if(dc){const prev=dc.value;dc.innerHTML=opts;dc.value=prev;}
+}
+
+// ══ PASSWORD CHANGE (Settings page) ══
+function changePwd2(){
+  const role=document.getElementById('pwdRole2').value;
+  const cur=document.getElementById('pc2').value;
+  const nw=document.getElementById('pn2').value;
+  const cf=document.getElementById('pcf2').value;
+  const err=document.getElementById('perr2');
+  const correct=role==='admin'?DB.admin.password:DB.public.password;
+  if(cur!==correct){err.textContent='❌ Wrong current password';return;}
+  if(nw.length<4){err.textContent='❌ Min 4 characters';return;}
+  if(nw!==cf){err.textContent='❌ Passwords do not match';return;}
+  if(role==='admin')DB.admin.password=nw;else DB.public.password=nw;
+  save();
+  err.textContent='';
+  document.getElementById('pc2').value='';
+  document.getElementById('pn2').value='';
+  document.getElementById('pcf2').value='';
+  toast('🔑 Password changed!');
+}
+
+// Auto-sync every 60 seconds
+setInterval(()=>{if(window.firebaseDB&&currentRole)loadFromFirebase();},60000);
+</script>
+</body>
+</html>
 
