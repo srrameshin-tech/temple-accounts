@@ -996,8 +996,8 @@ function renderTx(){
     const rcpt=t.receipt?`<span class="rcpt-badge">${t.receipt}</span>`:'';
     const pay=t.payMode?`<span class="pay-badge ${t.payMode==='UPI'?'pay-upi':t.payMode==='Bank'?'pay-bank':'pay-cash'}">${t.payMode==='UPI'?'📱':t.payMode==='Bank'?'🏦':'💵'}</span>`:'';
     const waBtn=isAdmin&&t.type==='income'?`<button class="actn" onclick="sendWAThanks(${t.id})" title="WhatsApp">📲</button>`:'';
-    const rcptBtn=`<button class="actn" onclick="sendReceiptWA(${t.id})" title="Receipt WA">🧾</button>`;
-    const acts=isAdmin?`<td><button class="actn" onclick="openEdit(${t.id})">✏️</button><button class="actn" onclick="openDel(${t.id})">🗑️</button>${waBtn}${rcptBtn}</td>`:`<td>${rcptBtn}</td>`;
+    const rcptBtn=isAdmin?`<button class="actn" onclick="sendReceiptWA(${t.id})" title="Receipt WA">🧾</button>`:'';
+    const acts=isAdmin?`<td><button class="actn" onclick="openEdit(${t.id})">✏️</button><button class="actn" onclick="openDel(${t.id})">🗑️</button>${waBtn}${rcptBtn}</td>`:`<td></td>`;
     return`<tr><td>${d} ${MA[+m]}</td><td>${t.name}${cat}${rcpt}${pay}</td>
     <td><span class="badge ${t.type==='income'?'bi':'be'}">${t.type==='income'?'Inc':'Exp'}</span></td>
     <td style="color:${t.type==='income'?'#1B5E20':'#B71C1C'};font-weight:700">${t.type==='income'?'+':'-'}₹${t.amount.toLocaleString('en-IN')}</td>${acts}</tr>`;
@@ -1982,4 +1982,3 @@ setInterval(()=>{if(window.firebaseDB&&currentRole)loadFromFirebase();},60000);
 </script>
 </body>
 </html>
-
