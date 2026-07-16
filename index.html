@@ -826,6 +826,19 @@ const save=()=>{
 };
 
 let lang='en', currentRole=null, isAdmin=false, isDark=false;
+
+// Password hashing (SHA-256) — auto-migrates legacy plaintext passwords on next successful use
+async function sha256Hex(str){
+  const enc=new TextEncoder().encode(str);
+  const buf=await crypto.subtle.digest('SHA-256',enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function isHashFormat(str){ return typeof str==='string' && /^[a-f0-9]{64}$/i.test(str); }
+async function verifyPassword(entered,stored){
+  if(!stored) return false;
+  if(isHashFormat(stored)) return (await sha256Hex(entered))===stored;
+  return entered===stored; // legacy plaintext fallback
+}
 let eId=null, dId=null, editDonorId=null, delDonorId=null;
 let editEventId=null, delEventId=null, editPujaId=null, editVolId=null, delVolId=null;
 let txChart=null, annualChart=null;
@@ -858,12 +871,16 @@ function switchTab(n){
 function toggleLang(){lang=lang==='en'?'ta':'en';document.getElementById('langBtn').textContent=lang==='en'?'த/E':'E/த';fillMonths();renderAll();}
 
 // ══ LOGIN ══
-function doLogin(){
+async function doLogin(){
   const u=document.getElementById('lu').value.trim();
   const p=document.getElementById('lp').value;
-  if(u===DB.admin.username&&p===DB.admin.password)enterApp('admin');
-  else if(u===DB.public.username&&p===DB.public.password)enterApp('public');
-  else document.getElementById('lerr').style.display='block';
+  if(u===DB.admin.username && await verifyPassword(p,DB.admin.password)){
+    if(!isHashFormat(DB.admin.password)){ DB.admin.password=await sha256Hex(p); save(); }
+    enterApp('admin');
+  } else if(u===DB.public.username && await verifyPassword(p,DB.public.password)){
+    if(!isHashFormat(DB.public.password)){ DB.public.password=await sha256Hex(p); save(); }
+    enterApp('public');
+  } else document.getElementById('lerr').style.display='block';
 }
 function enterApp(role){
   currentRole=role;isAdmin=(role==='admin');
@@ -1472,17 +1489,18 @@ function importData(e){
 
 // ══ PASSWORD ══
 function openPwd(){document.getElementById('pc').value='';document.getElementById('pn').value='';document.getElementById('pcf').value='';document.getElementById('perr').textContent='';openM('pwdM');}
-function changePwd(){
+async function changePwd(){
   const role=document.getElementById('pwdRole').value;
   const cur=document.getElementById('pc').value;
   const nw=document.getElementById('pn').value;
   const cf=document.getElementById('pcf').value;
   const err=document.getElementById('perr');
   const correct=role==='admin'?DB.admin.password:DB.public.password;
-  if(cur!==correct){err.textContent='❌ Wrong current password';return;}
+  if(!(await verifyPassword(cur,correct))){err.textContent='❌ Wrong current password';return;}
   if(nw.length<4){err.textContent='❌ Min 4 characters';return;}
   if(nw!==cf){err.textContent='❌ Passwords do not match';return;}
-  if(role==='admin')DB.admin.password=nw;else DB.public.password=nw;
+  const hashed=await sha256Hex(nw);
+  if(role==='admin')DB.admin.password=hashed;else DB.public.password=hashed;
   save();closeM('pwdM');toast('🔑 Password changed!');
 }
 
@@ -1978,17 +1996,18 @@ function deleteFestExp(festId,idx){
 }
 
 // ══ PASSWORD CHANGE (Settings page) ══
-function changePwd2(){
+async function changePwd2(){
   const role=document.getElementById('pwdRole2').value;
   const cur=document.getElementById('pc2').value;
   const nw=document.getElementById('pn2').value;
   const cf=document.getElementById('pcf2').value;
   const err=document.getElementById('perr2');
   const correct=role==='admin'?DB.admin.password:DB.public.password;
-  if(cur!==correct){err.textContent='❌ Wrong current password';return;}
+  if(!(await verifyPassword(cur,correct))){err.textContent='❌ Wrong current password';return;}
   if(nw.length<4){err.textContent='❌ Min 4 characters';return;}
   if(nw!==cf){err.textContent='❌ Passwords do not match';return;}
-  if(role==='admin')DB.admin.password=nw;else DB.public.password=nw;
+  const hashed=await sha256Hex(nw);
+  if(role==='admin')DB.admin.password=hashed;else DB.public.password=hashed;
   save();
   err.textContent='';
   document.getElementById('pc2').value='';
